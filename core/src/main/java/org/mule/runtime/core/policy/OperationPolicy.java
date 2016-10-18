@@ -8,13 +8,12 @@ package org.mule.runtime.core.policy;
 
 import org.mule.runtime.core.config.ComponentIdentifier;
 
-public interface OperationPolicy
-{
+public interface OperationPolicy {
 
-    boolean appliesToSource(ComponentIdentifier sourceIdentifier);
+  boolean appliesToSource(ComponentIdentifier sourceIdentifier);
 
-    boolean appliesToOperation(ComponentIdentifier operationIdentifier);
+  boolean appliesToOperation(ComponentIdentifier operationIdentifier);
 
-    OperationPolicyInstance createSourcePolicyInstance(ComponentIdentifier operationIdentifier);
+  OperationPolicyInstance createSourcePolicyInstance(ComponentIdentifier operationIdentifier);
 
 }

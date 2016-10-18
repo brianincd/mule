@@ -11,17 +11,16 @@ import org.mule.runtime.core.api.MuleException;
 
 import java.io.Serializable;
 
-public interface OperationPolicyInstance extends Serializable
-{
+public interface OperationPolicyInstance extends Serializable {
 
-    Event processSourcePre(Event sourceMessage) throws MuleException;
+  Event processSourcePre(Event sourceMessage) throws MuleException;
 
-    Event processSourcePost(Event flowResultEvent) throws MuleException;
+  Event processSourcePost(Event flowResultEvent) throws MuleException;
 
-    Event processOperationPre(Event eventBeforeOperation) throws MuleException;
+  Event processOperationPre(Event eventBeforeOperation) throws MuleException;
 
-    Event processOperationPost(Event eventAfterOperation) throws MuleException;
+  Event processOperationPost(Event eventAfterOperation) throws MuleException;
 
-    OperationPolicy getOperationPolicy();
+  OperationPolicy getOperationPolicy();
 
 }

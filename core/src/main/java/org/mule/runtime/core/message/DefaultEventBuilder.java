@@ -239,8 +239,7 @@ public class DefaultEventBuilder implements Event.Builder {
   }
 
   @Override
-  public Event.Builder attachPolicyInstance(OperationPolicyInstance policyInstance)
-  {
+  public Event.Builder attachPolicyInstance(OperationPolicyInstance policyInstance) {
     this.policyInstances.add(policyInstance);
     this.modified = true;
     return this;
@@ -320,7 +319,8 @@ public class DefaultEventBuilder implements Event.Builder {
                                 MessageExchangePattern exchangePattern, FlowConstruct flowConstruct, MuleSession session,
                                 boolean transacted, boolean synchronous, Object replyToDestination, ReplyToHandler replyToHandler,
                                 FlowCallStack flowCallStack, GroupCorrelation groupCorrelation, Error error,
-                                String legacyCorrelationId, boolean notificationsEnabled, List<OperationPolicyInstance> policyInstances) {
+                                String legacyCorrelationId, boolean notificationsEnabled,
+                                List<OperationPolicyInstance> policyInstances) {
       this.context = context;
       this.flowConstruct = flowConstruct;
       this.session = session;
@@ -483,8 +483,7 @@ public class DefaultEventBuilder implements Event.Builder {
       }
     }
 
-    public List<OperationPolicyInstance> getPolicyInstances()
-    {
+    public List<OperationPolicyInstance> getPolicyInstances() {
       return policyInstances;
     }
 
