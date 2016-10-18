@@ -44,8 +44,8 @@ public class DefaultOperationContext implements OperationContextAdapter {
   private final Map<String, Object> parameters;
   private final Map<String, Object> variables = new HashMap<>();
   private final OperationModel operationModel;
-  private final Event event;
   private final MuleContext muleContext;
+  private Event event;
   private Optional<TransactionConfig> transactionConfig = null;
   private Supplier<Optional<TransactionConfig>> transactionConfigSupplier;
 
@@ -186,6 +186,12 @@ public class DefaultOperationContext implements OperationContextAdapter {
   @Override
   public MuleContext getMuleContext() {
     return muleContext;
+  }
+
+  @Override
+  public void setEvent(Event event)
+  {
+    this.event = event;
   }
 
   /**

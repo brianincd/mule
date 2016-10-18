@@ -48,6 +48,7 @@
         <module>tooling-support</module>
         <module>ws</module>
         <module>xml</module>
+        <module>http-policy</module>
     </modules>
 
     <build>

@@ -106,7 +106,7 @@ public class ExtensionMessageSource extends ExtensionComponent
         .message((InternalMessage) message).exchangePattern(REQUEST_RESPONSE).flow(flowConstruct)
         .build();
     messageProcessingManager
-        .processMessage(new ExtensionFlowProcessingTemplate(event, messageProcessor, downCast(completionHandler)),
+        .processMessage(new ExtensionFlowProcessingTemplate(event, messageProcessor, sourceModel, downCast(completionHandler)),
                         createProcessingContext());
   }
 
@@ -116,7 +116,7 @@ public class ExtensionMessageSource extends ExtensionComponent
         .message((InternalMessage) message).exchangePattern(REQUEST_RESPONSE).flow(flowConstruct)
         .build();
     messageProcessingManager
-        .processMessage(new ExtensionFlowProcessingTemplate(event, messageProcessor, new NullCompletionHandler()),
+        .processMessage(new ExtensionFlowProcessingTemplate(event, messageProcessor, sourceModel, new NullCompletionHandler()),
                         createProcessingContext());
   }
 

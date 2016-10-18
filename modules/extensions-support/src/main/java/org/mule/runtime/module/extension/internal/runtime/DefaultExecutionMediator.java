@@ -12,13 +12,17 @@ import static org.mule.runtime.core.execution.TransactionalExecutionTemplate.cre
 import org.mule.runtime.api.connection.ConnectionProvider;
 import org.mule.runtime.api.meta.model.ExtensionModel;
 import org.mule.runtime.api.meta.model.operation.OperationModel;
+import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.execution.ExecutionTemplate;
 import org.mule.runtime.core.api.retry.RetryCallback;
 import org.mule.runtime.core.api.retry.RetryContext;
 import org.mule.runtime.core.api.retry.RetryPolicyTemplate;
+import org.mule.runtime.core.config.ComponentIdentifier;
 import org.mule.runtime.core.internal.connection.ConnectionManagerAdapter;
 import org.mule.runtime.core.internal.connection.ConnectionProviderWrapper;
+import org.mule.runtime.core.policy.OperationPolicy;
+import org.mule.runtime.core.policy.OperationPolicyInstance;
 import org.mule.runtime.core.util.ValueHolder;
 import org.mule.runtime.core.work.SerialWorkManager;
 import org.mule.runtime.extension.api.introspection.Interceptable;
@@ -33,6 +37,7 @@ import org.mule.runtime.module.extension.internal.runtime.config.MutableConfigur
 import org.mule.runtime.module.extension.internal.runtime.exception.ExceptionEnricherManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -123,11 +128,27 @@ public final class DefaultExecutionMediator implements ExecutionMediator {
     Object result = null;
     Throwable exception = null;
 
-
     InterceptorsExecutionResult beforeExecutionResult = before(context, interceptors);
 
+    List<OperationPolicyInstance> policyInstances = context.getEvent().getPolicyInstances();
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier.Builder()
+            .withNamespace("httpn")
+            .withName(context.getOperationModel().getName())
+            .build();
     try {
       if (beforeExecutionResult.isOk()) {
+        //TODO compare policies for outbound against policies instances that may be already created.
+        //Collection<OperationPolicy> operationPolicies = context.getMuleContext().getRegistry().lookupObjects(OperationPolicy.class);
+        Event event = context.getEvent();
+        for (OperationPolicyInstance policyInstance : policyInstances)
+        {
+          //TODO see how to get the namespace.
+          if (policyInstance.getOperationPolicy().appliesToOperation(componentIdentifier))
+          {
+            event = policyInstance.processOperationPre(context.getEvent());
+          }
+        }
+        context.setEvent(event);
         result = executor.execute(context);
         onSuccess(context, result, interceptors);
       } else {

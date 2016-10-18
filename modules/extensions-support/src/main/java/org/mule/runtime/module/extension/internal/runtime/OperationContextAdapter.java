@@ -69,4 +69,6 @@ public interface OperationContextAdapter extends OperationContext {
    * @return The {@link MuleContext} on which the operation is being executed
    */
   MuleContext getMuleContext();
+
+  void setEvent(Event event);
 }
