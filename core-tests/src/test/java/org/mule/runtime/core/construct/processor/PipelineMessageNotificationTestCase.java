@@ -26,6 +26,7 @@ import static org.mule.runtime.core.context.notification.PipelineMessageNotifica
 import static org.mule.runtime.core.context.notification.PipelineMessageNotification.PROCESS_START;
 import static org.mule.tck.MuleTestUtils.processAsStreamAndBlock;
 import static reactor.core.publisher.Flux.from;
+
 import org.mule.runtime.core.DefaultEventContext;
 import org.mule.runtime.core.TransformationService;
 import org.mule.runtime.core.api.Event;
@@ -36,6 +37,7 @@ import org.mule.runtime.core.api.context.notification.ServerNotification;
 import org.mule.runtime.core.api.message.InternalMessage;
 import org.mule.runtime.core.api.processor.MessageProcessorChainBuilder;
 import org.mule.runtime.core.api.processor.Processor;
+import org.mule.runtime.core.api.processor.factory.AsynchronousProcessingStrategyFactory;
 import org.mule.runtime.core.config.ChainedThreadingProfile;
 import org.mule.runtime.core.config.DefaultMuleConfiguration;
 import org.mule.runtime.core.construct.AbstractPipeline;
@@ -48,7 +50,6 @@ import org.mule.runtime.core.exception.DefaultMessagingExceptionStrategy;
 import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.management.stats.AllStatistics;
 import org.mule.runtime.core.processor.ResponseMessageProcessorAdapter;
-import org.mule.runtime.core.processor.strategy.AsynchronousProcessingStrategy;
 import org.mule.runtime.core.registry.DefaultRegistryBroker;
 import org.mule.runtime.core.registry.MuleRegistryHelper;
 import org.mule.tck.junit4.AbstractReactiveProcessorTestCase;
@@ -215,7 +216,7 @@ public class PipelineMessageNotificationTestCase extends AbstractReactiveProcess
   @Test
   public void oneWayAsyncRequestException() throws Exception {
     Flow pipeline = new Flow("test", muleContext);
-    pipeline.setProcessingStrategy(new AsynchronousProcessingStrategy());
+    pipeline.setProcessingStrategyFactory(new AsynchronousProcessingStrategyFactory());
     pipeline.setExceptionListener(new DefaultMessagingExceptionStrategy());
     List<Processor> processors = new ArrayList<>();
     processors.add(event -> {

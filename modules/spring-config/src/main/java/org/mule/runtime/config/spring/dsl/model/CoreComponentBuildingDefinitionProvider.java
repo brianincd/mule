@@ -32,6 +32,7 @@ import static org.mule.runtime.config.spring.dsl.api.CommonTypeConverters.string
 import static org.mule.runtime.config.spring.dsl.api.KeyAttributeDefinitionPair.newBuilder;
 import static org.mule.runtime.config.spring.dsl.api.TypeDefinition.fromConfigurationAttribute;
 import static org.mule.runtime.config.spring.dsl.api.TypeDefinition.fromType;
+import static org.mule.runtime.config.spring.dsl.model.ApplicationModel.PROCESSING_STRATEGY_FACTORY_ATTRIBUTE;
 import static org.mule.runtime.config.spring.dsl.model.ApplicationModel.PROTOTYPE_OBJECT_ELEMENT;
 import static org.mule.runtime.config.spring.dsl.model.ApplicationModel.SINGLETON_OBJECT_ELEMENT;
 import static org.mule.runtime.config.spring.dsl.processor.xml.CoreXmlNamespaceInfoProvider.CORE_NAMESPACE_NAME;
@@ -40,6 +41,7 @@ import static org.mule.runtime.core.config.i18n.I18nMessageFactory.createStaticM
 import static org.mule.runtime.core.retry.policies.SimpleRetryPolicyTemplate.RETRY_COUNT_FOREVER;
 import static org.mule.runtime.core.util.ClassUtils.instanciateClass;
 import static org.mule.runtime.core.util.Preconditions.checkState;
+
 import org.mule.runtime.api.config.PoolingProfile;
 import org.mule.runtime.api.message.ErrorType;
 import org.mule.runtime.config.spring.MuleConfigurationConfigurator;
@@ -117,6 +119,8 @@ import org.mule.runtime.core.expression.transformers.ExpressionArgument;
 import org.mule.runtime.core.expression.transformers.ExpressionTransformer;
 import org.mule.runtime.core.interceptor.LoggingInterceptor;
 import org.mule.runtime.core.interceptor.TimerInterceptor;
+import org.mule.runtime.core.internal.transformer.simple.ObjectToByteArray;
+import org.mule.runtime.core.internal.transformer.simple.ObjectToString;
 import org.mule.runtime.core.model.resolvers.ArrayEntryPointResolver;
 import org.mule.runtime.core.model.resolvers.CallableEntryPointResolver;
 import org.mule.runtime.core.model.resolvers.DefaultEntryPointResolverSet;
@@ -181,8 +185,6 @@ import org.mule.runtime.core.transformer.simple.CombineCollectionsTransformer;
 import org.mule.runtime.core.transformer.simple.CopyPropertiesProcessor;
 import org.mule.runtime.core.transformer.simple.HexStringToByteArray;
 import org.mule.runtime.core.transformer.simple.MapToBean;
-import org.mule.runtime.core.internal.transformer.simple.ObjectToByteArray;
-import org.mule.runtime.core.internal.transformer.simple.ObjectToString;
 import org.mule.runtime.core.transformer.simple.ParseTemplateTransformer;
 import org.mule.runtime.core.transformer.simple.SerializableToByteArray;
 import org.mule.runtime.core.transformer.simple.StringAppendTransformer;
@@ -413,7 +415,9 @@ public class CoreComponentBuildingDefinitionProvider implements ComponentBuildin
         .withSetterParameterDefinition(MESSAGE_PROCESSORS, fromChildCollectionConfiguration(Processor.class).build())
         .withSetterParameterDefinition(EXCEPTION_LISTENER_ATTRIBUTE,
                                        fromChildConfiguration(MessagingExceptionHandler.class).build())
-        .withSetterParameterDefinition("processingStrategy", fromSimpleReferenceParameter("processingStrategy").build()).build());
+        .withSetterParameterDefinition(PROCESSING_STRATEGY_FACTORY_ATTRIBUTE,
+                                       fromSimpleReferenceParameter("processingStrategy").build())
+        .build());
     componentBuildingDefinitions.add(baseDefinition.copy().withIdentifier(SCATTER_GATHER)
         .withTypeDefinition(fromType(ScatterGatherRouter.class)).withObjectFactoryType(ScatterGatherRouterFactoryBean.class)
         .withSetterParameterDefinition("timeout", fromSimpleParameter("timeout").build())
@@ -438,7 +442,8 @@ public class CoreComponentBuildingDefinitionProvider implements ComponentBuildin
     componentBuildingDefinitions
         .add(baseDefinition.copy().withIdentifier(ASYNC).withTypeDefinition(fromType(AsyncDelegateMessageProcessor.class))
             .withObjectFactoryType(AsyncMessageProcessorsFactoryBean.class)
-            .withSetterParameterDefinition("processingStrategy", fromSimpleReferenceParameter("processingStrategy").build())
+            .withSetterParameterDefinition(PROCESSING_STRATEGY_FACTORY_ATTRIBUTE,
+                                           fromSimpleReferenceParameter("processingStrategy").build())
             .withSetterParameterDefinition(MESSAGE_PROCESSORS, fromChildCollectionConfiguration(Processor.class).build())
             .withSetterParameterDefinition(NAME, fromSimpleParameter(NAME).build()).build());
     componentBuildingDefinitions
