@@ -22,6 +22,7 @@ import org.mule.runtime.core.api.processor.NonBlockingMessageProcessor;
 import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.api.processor.MessageProcessorChainBuilder;
 import org.mule.runtime.core.api.processor.ReactiveProcessor;
+import org.mule.runtime.core.api.processor.StageNameSource;
 import org.mule.runtime.core.processor.AbstractNonBlockingMessageProcessor;
 import org.mule.runtime.core.work.MuleWorkManager;
 
@@ -38,22 +39,21 @@ import org.reactivestreams.Publisher;
  *
  * @since 3.7
  */
-public class NonBlockingProcessingStrategy extends AbstractThreadingProfileProcessingStrategy implements Startable, Stoppable {
+public class NonBlockingProcessingStrategy extends AbstractThreadingProfileProcessingStrategy {
 
   private static final int DEFAULT_MAX_THREADS = 128;
-  private ExecutorService executorService;
 
   public NonBlockingProcessingStrategy() {
     maxThreads = DEFAULT_MAX_THREADS;
   }
 
   public NonBlockingProcessingStrategy(ExecutorService executorService) {
-    this.executorService = executorService;
+    super(executorService);
   }
 
   @Override
   public void configureProcessors(List<Processor> processors,
-                                  org.mule.runtime.core.api.processor.StageNameSource nameSource,
+                                  StageNameSource nameSource,
                                   MessageProcessorChainBuilder chainBuilder, MuleContext muleContext) {
     for (Processor processor : processors) {
       chainBuilder.chain((Processor) processor);
@@ -63,19 +63,10 @@ public class NonBlockingProcessingStrategy extends AbstractThreadingProfileProce
   public Function<Publisher<Event>, Publisher<Event>> onProcessor(Processor processor,
                                                                   Function<Publisher<Event>, Publisher<Event>> publisherFunction) {
     if (processor instanceof NonBlockingMessageProcessor) {
-      return publisher -> from(publisher).transform(publisherFunction).publishOn(fromExecutorService(executorService));
+      return publisher -> from(publisher).transform(publisherFunction).publishOn(fromExecutorService(getExecutorService()));
     } else {
       return super.onProcessor(processor, publisherFunction);
     }
   }
 
-  @Override
-  public void start() throws MuleException {
-    executorService = newFixedThreadPool(maxThreads);
-  }
-
-  @Override
-  public void stop() throws MuleException {
-    executorService.shutdown();
-  }
 }

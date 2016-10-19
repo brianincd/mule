@@ -52,6 +52,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.reactivestreams.Publisher;
 
 public class FlowTestCase extends AbstractFlowConstuctTestCase {
 
@@ -73,8 +74,13 @@ public class FlowTestCase extends AbstractFlowConstuctTestCase {
     dynamicProcessorContainer = mock(DynamicMessageProcessorContainer.class);
     when(dynamicProcessorContainer.process(any(Event.class))).then(invocation -> {
       Object[] args = invocation.getArguments();
-      return (Event) args[0];
+      return args[0];
     });
+    when(dynamicProcessorContainer.apply(any(Publisher.class))).then(invocation -> {
+      Object[] args = invocation.getArguments();
+      return args[0];
+    });
+
     doAnswer(invocation -> ((MessageProcessorPathElement) invocation.getArguments()[0]).addChild(dynamicProcessorContainer))
         .when(dynamicProcessorContainer).addMessageProcessorPathElements(any(MessageProcessorPathElement.class));
     List<Processor> processors = new ArrayList<>();
