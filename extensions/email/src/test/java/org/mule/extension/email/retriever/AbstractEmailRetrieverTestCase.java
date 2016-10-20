@@ -7,6 +7,25 @@
 
 package org.mule.extension.email.retriever;
 
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mule.extension.email.EmailConnectorTestCase;
+import org.mule.runtime.api.message.Message;
+import org.mule.runtime.api.message.MultiPartPayload;
+import org.mule.runtime.core.message.DefaultMultiPartPayload;
+import org.mule.runtime.core.streaming.ConsumerIterator;
+import org.mule.runtime.extension.api.runtime.operation.OperationResult;
+import org.mule.tck.junit4.rule.SystemProperty;
+
+import javax.mail.Flags.Flag;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.List;
+
 import static java.lang.String.format;
 import static javax.mail.Message.RecipientType.CC;
 import static javax.mail.Message.RecipientType.TO;
@@ -29,25 +48,6 @@ import static org.mule.extension.email.util.EmailTestUtils.JUANI_EMAIL;
 import static org.mule.extension.email.util.EmailTestUtils.assertAttachmentContent;
 import static org.mule.extension.email.util.EmailTestUtils.getMultipartTestMessage;
 import static org.mule.extension.email.util.EmailTestUtils.testSession;
-import org.mule.extension.email.EmailConnectorTestCase;
-import org.mule.runtime.api.message.Message;
-import org.mule.runtime.api.message.MultiPartPayload;
-import org.mule.runtime.core.message.DefaultMultiPartPayload;
-import org.mule.runtime.extension.api.runtime.operation.OperationResult;
-import org.mule.tck.junit4.rule.SystemProperty;
-
-import java.util.List;
-
-import javax.mail.Flags.Flag;
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public abstract class AbstractEmailRetrieverTestCase extends EmailConnectorTestCase {
 
@@ -81,8 +81,8 @@ public abstract class AbstractEmailRetrieverTestCase extends EmailConnectorTestC
   public void retrieveNothing() throws Exception {
     server.purgeEmailFromAllMailboxes();
     assertThat(server.getReceivedMessages(), arrayWithSize(0));
-    List<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_READ);
-    assertThat(messages, hasSize(0));
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_READ);
+    assertThat(paginationSize(messages), is(0));
   }
 
   @Test
@@ -93,9 +93,9 @@ public abstract class AbstractEmailRetrieverTestCase extends EmailConnectorTestC
       user.deliver(mimeMessage);
     }
 
-    List<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_MATCH_SUBJECT_AND_FROM);
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_MATCH_SUBJECT_AND_FROM);
     assertThat(server.getReceivedMessages(), arrayWithSize(15));
-    assertThat(messages, hasSize(10));
+    assertThat(paginationSize(messages), is(10));
   }
 
   private MimeMessage getMimeMessage(String to, String cc, String body, String subject, String from) throws MessagingException {
@@ -112,29 +112,41 @@ public abstract class AbstractEmailRetrieverTestCase extends EmailConnectorTestC
   public void retrieveEmailWithAttachments() throws Exception {
     server.purgeEmailFromAllMailboxes();
     user.deliver(getMultipartTestMessage());
-    List<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_WITH_ATTACHMENTS);
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_WITH_ATTACHMENTS);
 
-    assertThat(messages, hasSize(1));
-    assertThat(messages.get(0).getOutput(), instanceOf(MultiPartPayload.class));
-    List<Message> emailAttachments = ((MultiPartPayload) messages.get(0).getOutput()).getParts();
+    OperationResult message = messages.next();
+    assertThat(messages.hasNext(), is(false));
+    assertThat(message.getOutput(), instanceOf(MultiPartPayload.class));
+    List<Message> emailAttachments = ((MultiPartPayload) message.getOutput()).getParts();
 
     assertThat(emailAttachments, hasSize(3));
-    assertThat(((DefaultMultiPartPayload) messages.get(0).getOutput()).hasBodyPart(), is(true));
-    assertThat(((MultiPartPayload) messages.get(0).getOutput()).getPartNames(),
+    assertThat(((DefaultMultiPartPayload) message.getOutput()).hasBodyPart(), is(true));
+    assertThat(((MultiPartPayload) message.getOutput()).getPartNames(),
                hasItems(EMAIL_JSON_ATTACHMENT_NAME, EMAIL_TEXT_PLAIN_ATTACHMENT_NAME));
-    assertAttachmentContent(emailAttachments, EMAIL_JSON_ATTACHMENT_NAME, EMAIL_JSON_ATTACHMENT_CONTENT);
-    assertAttachmentContent(emailAttachments, EMAIL_TEXT_PLAIN_ATTACHMENT_NAME, EMAIL_TEXT_PLAIN_ATTACHMENT_CONTENT);
+    assertAttachmentContent(emailAttachments, EMAIL_JSON_ATTACHMENT_NAME, EMAIL_JSON_ATTACHMENT_CONTENT.getBytes());
+    assertAttachmentContent(emailAttachments, EMAIL_TEXT_PLAIN_ATTACHMENT_NAME, EMAIL_TEXT_PLAIN_ATTACHMENT_CONTENT.getBytes());
   }
 
   @Test
   public void retrieveAndDelete() throws Exception {
     assertThat(server.getReceivedMessages(), arrayWithSize(10));
-    runFlow(RETRIEVE_AND_DELETE);
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_DELETE);
+    assertThat(paginationSize(messages), is(10));
     assertThat(server.getReceivedMessages(), arrayWithSize(0));
   }
 
-  protected List<OperationResult> runFlowAndGetMessages(String flowName) throws Exception {
-    return (List<OperationResult>) flowRunner(flowName).run().getMessage().getPayload().getValue();
+  protected ConsumerIterator<OperationResult> runFlowAndGetMessages(String flowName) throws Exception {
+    return (ConsumerIterator<OperationResult>) flowRunner(flowName).run().getMessage().getPayload().getValue();
+  }
+
+  protected int paginationSize(ConsumerIterator<?> iterator) {
+    int count = 0;
+    while (iterator.hasNext()) {
+      iterator.next();
+      count++;
+    }
+
+    return count;
   }
 
   protected void assertFlag(MimeMessage m, Flag flag, boolean contains) {
@@ -144,4 +156,5 @@ public abstract class AbstractEmailRetrieverTestCase extends EmailConnectorTestC
       fail("flag assertion error");
     }
   }
+
 }

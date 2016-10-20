@@ -6,16 +6,17 @@
  */
 package org.mule.extension.email.internal.util;
 
-import static javax.mail.Part.ATTACHMENT;
-import static org.mule.extension.email.internal.util.EmailConnectorConstants.TEXT;
+import com.google.common.collect.ImmutableList;
 import org.mule.extension.email.api.exception.EmailException;
 import org.mule.runtime.api.message.Message;
 import org.mule.runtime.api.metadata.MediaType;
 import org.mule.runtime.core.message.PartAttributes;
 import org.mule.runtime.core.util.IOUtils;
 
-import com.google.common.collect.ImmutableList;
-
+import javax.mail.Header;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -25,10 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import javax.mail.Header;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
+import static javax.mail.Part.ATTACHMENT;
+import static org.mule.extension.email.internal.util.EmailConnectorConstants.TEXT;
 
 /**
  * Given a {@link Message} introspects it's content to obtain the body an the attachments if any.
@@ -138,7 +137,7 @@ public class EmailContentProcessor {
     }
 
     attachmentParts.add(Message.builder()
-        .payload(part.getInputStream())
+        .payload(IOUtils.toByteArray(part.getInputStream()))
         .mediaType(MediaType.parse(part.getContentType()))
         .attributes(new PartAttributes(part.getFileName(), part.getFileName(), part.getSize(), headers))
         .build());

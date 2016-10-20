@@ -6,23 +6,8 @@
  */
 package org.mule.runtime.module.extension.internal.util;
 
-import static java.lang.String.format;
-import static java.lang.reflect.Modifier.isPublic;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang.ArrayUtils.isEmpty;
-import static org.mule.metadata.api.model.MetadataFormat.JAVA;
-import static org.mule.metadata.java.api.utils.JavaTypeUtils.getType;
-import static org.mule.metadata.internal.utils.MetadataTypeUtils.isObjectType;
-import static org.mule.runtime.api.meta.ExpressionSupport.SUPPORTED;
-import static org.mule.runtime.core.util.Preconditions.checkArgument;
-import static org.reflections.ReflectionUtils.getAllFields;
-import static org.reflections.ReflectionUtils.getAllSuperTypes;
-import static org.reflections.ReflectionUtils.withAnnotation;
-import static org.reflections.ReflectionUtils.withName;
-import static org.springframework.core.ResolvableType.forType;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.mule.metadata.api.ClassTypeLoader;
 import org.mule.metadata.api.builder.BaseTypeBuilder;
 import org.mule.metadata.api.model.AnyType;
@@ -59,9 +44,7 @@ import org.mule.runtime.extension.api.runtime.source.Source;
 import org.mule.runtime.module.extension.internal.introspection.describer.MuleExtensionAnnotationParser;
 import org.mule.runtime.module.extension.internal.model.property.DeclaringMemberModelProperty;
 import org.mule.runtime.module.extension.internal.model.property.ImplementingParameterModelProperty;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import org.springframework.core.ResolvableType;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -83,7 +66,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.springframework.core.ResolvableType;
+import static java.lang.String.format;
+import static java.lang.reflect.Modifier.isPublic;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang.ArrayUtils.isEmpty;
+import static org.mule.metadata.api.model.MetadataFormat.JAVA;
+import static org.mule.metadata.internal.utils.MetadataTypeUtils.isObjectType;
+import static org.mule.metadata.java.api.utils.JavaTypeUtils.getType;
+import static org.mule.runtime.api.meta.ExpressionSupport.SUPPORTED;
+import static org.mule.runtime.core.util.Preconditions.checkArgument;
+import static org.reflections.ReflectionUtils.getAllFields;
+import static org.reflections.ReflectionUtils.getAllSuperTypes;
+import static org.reflections.ReflectionUtils.withAnnotation;
+import static org.reflections.ReflectionUtils.withName;
+import static org.springframework.core.ResolvableType.forType;
 
 /**
  * Set of utility operations to get insights about objects and their components
@@ -121,14 +120,9 @@ public final class IntrospectionUtils {
    * @throws IllegalArgumentException is method is {@code null}
    */
   public static MetadataType getMethodReturnType(Method method, ClassTypeLoader typeLoader) {
-    ResolvableType methodType = getMethodResolvableType(method);
-    if (isInterceptingCallback(methodType)) {
-      methodType = unwrapGenericFromClass(InterceptingCallback.class, methodType, 0);
-    } else if (isPagingProvider(methodType)) {
-      methodType = unwrapGenericFromClass(PagingProvider.class, methodType, 1);
-    }
-
+    ResolvableType methodType = getMethodType(method);
     Type type = methodType.getType();
+
     if (methodType.getRawClass().equals(OperationResult.class)) {
       ResolvableType genericType = methodType.getGenerics()[0];
       if (genericType.getRawClass() != null) {
@@ -155,11 +149,7 @@ public final class IntrospectionUtils {
    */
   public static MetadataType getMethodReturnAttributesType(Method method, ClassTypeLoader typeLoader) {
     Type type = null;
-
-    ResolvableType methodType = getMethodResolvableType(method);
-    if (isInterceptingCallback(methodType)) {
-      methodType = unwrapGenericFromClass(InterceptingCallback.class, methodType, 0);
-    }
+    ResolvableType methodType = getMethodType(method);
 
     if (methodType.getRawClass().equals(OperationResult.class)) {
       ResolvableType genericType = methodType.getGenerics()[1];
@@ -169,6 +159,17 @@ public final class IntrospectionUtils {
     }
 
     return type != null ? typeLoader.load(type) : typeBuilder().voidType().build();
+  }
+
+  private static ResolvableType getMethodType(Method method) {
+    ResolvableType methodType = getMethodResolvableType(method);
+    if (isInterceptingCallback(methodType)) {
+      methodType = unwrapGenericFromClass(InterceptingCallback.class, methodType, 0);
+    } else if (isPagingProvider(methodType)) {
+      methodType = unwrapGenericFromClass(PagingProvider.class, methodType, 1);
+    }
+
+    return methodType;
   }
 
   static ResolvableType unwrapGenericFromClass(Class<?> clazz, ResolvableType type, int genericIndex) {

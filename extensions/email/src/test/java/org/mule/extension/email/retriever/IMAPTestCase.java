@@ -7,14 +7,29 @@
 
 package org.mule.extension.email.retriever;
 
+import org.junit.Test;
+import org.junit.runners.Parameterized;
+import org.mule.extension.email.api.attributes.IMAPEmailAttributes;
+import org.mule.extension.email.api.exception.EmailException;
+import org.mule.runtime.core.streaming.ConsumerIterator;
+import org.mule.runtime.extension.api.runtime.operation.OperationResult;
+import org.mule.test.runner.RunnerDelegateTo;
+
+import javax.mail.Flags.Flag;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collection;
+
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static javax.mail.Flags.Flag.DELETED;
 import static javax.mail.Flags.Flag.RECENT;
 import static javax.mail.Flags.Flag.SEEN;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -26,23 +41,6 @@ import static org.mule.extension.email.util.EmailTestUtils.EMAIL_CONTENT;
 import static org.mule.extension.email.util.EmailTestUtils.EMAIL_SUBJECT;
 import static org.mule.extension.email.util.EmailTestUtils.ESTEBAN_EMAIL;
 import static org.mule.extension.email.util.EmailTestUtils.JUANI_EMAIL;
-import org.mule.extension.email.api.attributes.IMAPEmailAttributes;
-import org.mule.extension.email.api.exception.EmailException;
-import org.mule.runtime.extension.api.runtime.operation.OperationResult;
-import org.mule.test.runner.RunnerDelegateTo;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.mail.Flags.Flag;
-import javax.mail.internet.MimeMessage;
-
-import org.junit.Test;
-import org.junit.runners.Parameterized;
 
 @RunnerDelegateTo(Parameterized.class)
 public class IMAPTestCase extends AbstractEmailRetrieverTestCase {
@@ -62,7 +60,7 @@ public class IMAPTestCase extends AbstractEmailRetrieverTestCase {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {{"imap"}, {"imaps"}});
+    return asList(new Object[][] {{"imap"}, {"imaps"}});
   }
 
   @Override
@@ -77,19 +75,28 @@ public class IMAPTestCase extends AbstractEmailRetrieverTestCase {
 
   @Test
   public void retrieveAndRead() throws Exception {
-    List<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_READ);
-    assertThat(messages, hasSize(10));
-    messages.forEach(m -> {
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_READ);
+    int size = 0;
+    while (messages.hasNext()) {
+      size++;
+      OperationResult m = messages.next();
       assertBodyContent((String) m.getOutput());
       assertThat(((IMAPEmailAttributes) m.getAttributes().get()).getFlags().isSeen(), is(true));
-    });
+    }
+
+    assertThat(size, is(10));
   }
 
   @Test
   public void retrieveAndDontRead() throws Exception {
-    List<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_DONT_READ);
-    assertThat(messages, hasSize(10));
-    messages.forEach(m -> assertThat(((IMAPEmailAttributes) m.getAttributes().get()).getFlags().isSeen(), is(false)));
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(RETRIEVE_AND_DONT_READ);
+    int count = 0;
+    while (messages.hasNext()) {
+      OperationResult m = messages.next();
+      assertThat(((IMAPEmailAttributes) m.getAttributes().get()).getFlags().isSeen(), is(false));
+      count++;
+    }
+    assertThat(count, is(10));
   }
 
   @Test
@@ -175,9 +182,14 @@ public class IMAPTestCase extends AbstractEmailRetrieverTestCase {
       message.setFlag(flag, flagState);
     }
 
-    List<OperationResult> messages = runFlowAndGetMessages(flowName);
+    ConsumerIterator<OperationResult> messages = runFlowAndGetMessages(flowName);
     assertThat(server.getReceivedMessages(), arrayWithSize(10));
-    assertThat(messages, hasSize(7));
+    int count = 0;
+    while (messages.hasNext()) {
+      messages.next();
+      count++;
+    }
+    assertThat(count, is(7));
   }
 
   private void assertStoredEmail(File storedEmail) throws IOException {

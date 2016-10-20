@@ -6,23 +6,10 @@
  */
 package org.mule.extension.email.util;
 
-import static java.lang.Thread.currentThread;
-import static javax.mail.Message.RecipientType.TO;
-import static javax.mail.Part.ATTACHMENT;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.mule.runtime.api.metadata.MediaType.TEXT;
-
+import com.icegreen.greenmail.util.ServerSetup;
 import org.mule.runtime.api.message.Message;
 import org.mule.runtime.api.message.MultiPartPayload;
 import org.mule.runtime.core.message.DefaultMultiPartPayload;
-import org.mule.runtime.core.util.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
-import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.mail.MessagingException;
@@ -32,8 +19,16 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.Properties;
 
-import com.icegreen.greenmail.util.ServerSetup;
+import static java.lang.Thread.currentThread;
+import static javax.mail.Message.RecipientType.TO;
+import static javax.mail.Part.ATTACHMENT;
+import static org.junit.Assert.assertArrayEquals;
+import static org.mule.runtime.api.metadata.MediaType.TEXT;
 
 public class EmailTestUtils {
 
@@ -89,13 +84,13 @@ public class EmailTestUtils {
     return message;
   }
 
-  public static void assertAttachmentContent(List<Message> attachments, String attachmentKey, Object expectedResult)
+  public static void assertAttachmentContent(List<Message> attachments, String attachmentKey, byte[] expectedResult)
       throws IOException {
     final MultiPartPayload multiPartPayload = new DefaultMultiPartPayload(attachments);
 
     Message attachment = multiPartPayload.getPart(attachmentKey);
-    String attachmentAsString = IOUtils.toString((InputStream) attachment.getPayload().getValue());
-    assertThat(attachmentAsString, is(expectedResult));
+    byte[] attachmentAsByteArray = (byte[]) attachment.getPayload().getValue();
+    assertArrayEquals(attachmentAsByteArray, expectedResult);
   }
 
   public static ServerSetup setUpServer(int port, String protocol) {
