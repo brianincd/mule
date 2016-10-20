@@ -8,8 +8,10 @@ package org.mule.extension.db.integration.update;
 
 import org.mule.extension.db.integration.AbstractQueryTimeoutTestCase;
 
+import ru.yandex.qatools.allure.annotations.Features;
 import ru.yandex.qatools.allure.annotations.Stories;
 
+@Features("DB Extension")
 @Stories("Update Statement")
 public class UpdateTimeoutTestCase extends AbstractQueryTimeoutTestCase {
 

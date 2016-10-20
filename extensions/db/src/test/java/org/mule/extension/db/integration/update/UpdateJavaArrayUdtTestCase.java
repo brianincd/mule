@@ -11,7 +11,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.mule.extension.db.integration.TestDbConfig.getOracleResource;
-
 import org.mule.extension.db.integration.AbstractDbIntegrationTestCase;
 import org.mule.extension.db.integration.model.ContactDetails;
 import org.mule.extension.db.integration.model.OracleTestDatabase;
@@ -23,8 +22,10 @@ import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
+import ru.yandex.qatools.allure.annotations.Features;
 import ru.yandex.qatools.allure.annotations.Stories;
 
+@Features("DB Extension")
 @Stories("Update Statement")
 public class UpdateJavaArrayUdtTestCase extends AbstractDbIntegrationTestCase {
 

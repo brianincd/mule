@@ -2262,6 +2262,9 @@
                                     <value>ru.yandex.qatools.allure.junit.AllureRunListener</value>
                                 </property>
                             </properties>
+                            <systemPropertyVariables>
+                                <allure.profile.is.activated>true</allure.profile.is.activated>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>

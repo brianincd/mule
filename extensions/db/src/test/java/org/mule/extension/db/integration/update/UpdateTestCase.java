@@ -27,8 +27,10 @@ import java.util.Random;
 
 import org.junit.Test;
 import ru.yandex.qatools.allure.annotations.Description;
+import ru.yandex.qatools.allure.annotations.Features;
 import ru.yandex.qatools.allure.annotations.Stories;
 
+@Features("DB Extension")
 @Stories("Update Statement")
 public class UpdateTestCase extends AbstractDbIntegrationTestCase {
 
