@@ -142,10 +142,10 @@ public class AetherClassPathClassifierTestCase extends AbstractMuleTestCase {
                                                 argThat(instanceOf(DependencyFilter.class))))
                                                     .thenReturn(newArrayList(fooCoreArtifactFile, fooToolsArtifactFile));
 
-    ArtifactUrlClassification classification = classifier.classify(context);
+    ArtifactsUrlClassification classification = classifier.classify(context);
 
     assertThat(classification.getApplicationUrls(), is(empty()));
-    assertThat(classification.getPluginClassificationUrls(), is(empty()));
+    assertThat(classification.getPluginUrlClassifications(), is(empty()));
     assertThat(classification.getPluginSharedLibUrls(), is(empty()));
     assertThat(classification.getContainerUrls(), hasSize(3));
     assertThat(classification.getContainerUrls(),
@@ -214,11 +214,11 @@ public class AetherClassPathClassifierTestCase extends AbstractMuleTestCase {
 
     ArtifactDescriptorResult defaultArtifactDescriptorResult = noManagedDependencies();
 
-    ArtifactUrlClassification classification = classifier.classify(context);
+    ArtifactsUrlClassification classification = classifier.classify(context);
 
     assertThat(classification.getApplicationUrls(), hasSize(1));
     assertThat(classification.getApplicationUrls(), hasItem(rootArtifactFile.toURI().toURL()));
-    assertThat(classification.getPluginClassificationUrls(), is(empty()));
+    assertThat(classification.getPluginUrlClassifications(), is(empty()));
     assertThat(classification.getPluginSharedLibUrls(), hasSize(1));
     assertThat(classification.getPluginSharedLibUrls(), hasItem(derbyDriverFile.toURI().toURL()));
     assertThat(classification.getContainerUrls(), is(empty()));
