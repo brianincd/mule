@@ -79,5 +79,4 @@ public class NumberValidationTestCase extends ValidationTestCase {
     return runner.withPayload(value).withVariable("minValue", minValue).withVariable("maxValue", maxValue)
         .withVariable("numberType", numberType);
   }
-
 }
