@@ -69,6 +69,8 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
   private static List<ArtifactClassLoader> serviceClassLoaders;
   private static ClassLoader containerClassLoader;
 
+  private MuleServiceManager serviceRepository;
+
   /**
    * @return thread context class loader has to be the application {@link ClassLoader} created by the runner.
    */
@@ -123,7 +125,7 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
   }
 
   protected void configureSpringXmlConfigurationBuilder(SpringXmlConfigurationBuilder builder) {
-    final MuleServiceManager serviceRepository =
+    serviceRepository =
         new MuleServiceManager(new DefaultServiceDiscoverer(new IsolatedServiceProviderDiscoverer(
                                                                                                   serviceClassLoaders),
                                                             new ReflectionServiceResolver(
@@ -137,6 +139,12 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
         .addServiceConfigurator(
                                 new TestServicesMuleContextConfigurator(
                                                                         serviceRepository));
+  }
+
+  @Override
+  protected void doTearDownAfterMuleContextDispose() throws Exception {
+    serviceRepository.stop();
+    super.doTearDownAfterMuleContextDispose();
   }
 
   /**

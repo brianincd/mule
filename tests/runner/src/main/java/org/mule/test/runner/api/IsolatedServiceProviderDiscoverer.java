@@ -46,7 +46,7 @@ public class IsolatedServiceProviderDiscoverer implements ServiceProviderDiscove
   @Override
   public List<ServiceProvider> discover() throws ServiceResolutionError {
     List<ServiceProvider> serviceProviders = new LinkedList<>();
-    for (ArtifactClassLoader serviceArtifactClassLoader : serviceArtifactClassLoaders) {
+    for (Object serviceArtifactClassLoader : serviceArtifactClassLoaders) {
       try {
         final ServiceProvider serviceProvider;
         String artifactName =

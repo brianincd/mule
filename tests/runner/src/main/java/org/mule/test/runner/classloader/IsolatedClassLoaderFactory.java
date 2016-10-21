@@ -156,6 +156,8 @@ public class IsolatedClassLoaderFactory {
                                                                 ArtifactsUrlClassification artifactsUrlClassification) {
     List<ArtifactClassLoader> servicesArtifactClassLoaders = newArrayList();
     for (ArtifactUrlClassification serviceUrlClassification : artifactsUrlClassification.getServiceUrlClassifications()) {
+      logClassLoaderUrls("SERVICE (" + serviceUrlClassification.getArtifactId() + ")", serviceUrlClassification.getUrls());
+
       MuleArtifactClassLoader artifactClassLoader =
           new MuleArtifactClassLoader(new ArtifactDescriptor(serviceUrlClassification.getName()),
                                       serviceUrlClassification.getUrls().toArray(
