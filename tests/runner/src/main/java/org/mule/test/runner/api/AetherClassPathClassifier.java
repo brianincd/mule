@@ -382,7 +382,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
 
     logger.debug("{} plugins defined to be classified", pluginsArtifacts.size());
 
-    Predicate<Dependency> mulePluginDependencyFilter = dependency -> dependency.getArtifact().getClassifier().equals(MULE_PLUGIN_CLASSIFIER);
+    Predicate<Dependency> mulePluginDependencyFilter =
+        dependency -> dependency.getArtifact().getClassifier().equals(MULE_PLUGIN_CLASSIFIER);
     if (PLUGIN.equals(rootArtifactType)) {
       logger.debug("rootArtifact '{}' identified as Mule plugin", rootArtifact);
       buildPluginUrlClassification(rootArtifact, context, directDependencies, mulePluginDependencyFilter, pluginsClassified);
@@ -394,7 +395,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     }
 
     pluginsArtifacts.stream()
-        .forEach(pluginArtifact -> buildPluginUrlClassification(pluginArtifact, context, directDependencies, mulePluginDependencyFilter,
+        .forEach(pluginArtifact -> buildPluginUrlClassification(pluginArtifact, context, directDependencies,
+                                                                mulePluginDependencyFilter,
                                                                 pluginsClassified));
 
     if (context.isExtensionMetadataGenerationEnabled()) {
@@ -402,7 +404,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
           new ExtensionPluginMetadataGenerator(context.getPluginResourcesFolder());
 
       for (ArtifactClassificationNode pluginClassifiedNode : pluginsClassified.values()) {
-        generateExtensionMetadata(pluginClassifiedNode.getArtifact(), context, extensionPluginMetadataGenerator, pluginClassifiedNode.getUrls());
+        generateExtensionMetadata(pluginClassifiedNode.getArtifact(), context, extensionPluginMetadataGenerator,
+                                  pluginClassifiedNode.getUrls());
       }
 
       extensionPluginMetadataGenerator.generateDslResources();
@@ -420,7 +423,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     return classificationNodes.stream().map(node -> {
       InputStream servicePropertiesStream =
           new URLClassLoader(node.getUrls().toArray(new URL[0]), null).getResourceAsStream(SERVICE_PROPERTIES_FILE_NAME);
-      checkNotNull(servicePropertiesStream, "Couldn't find " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getArtifact());
+      checkNotNull(servicePropertiesStream,
+                   "Couldn't find " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getArtifact());
       try {
         Properties serviceProperties = loadProperties(servicePropertiesStream);
         String serviceProviderClassName = serviceProperties.getProperty(SERVICE_PROVIDER_CLASS_NAME);
@@ -430,7 +434,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
         }
         return new ArtifactUrlClassification(toClassifierLessId(node.getArtifact()), serviceProviderClassName, node.getUrls());
       } catch (IOException e) {
-        throw new IllegalArgumentException("Couldn't read " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getArtifact(),
+        throw new IllegalArgumentException("Couldn't read " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: "
+            + node.getArtifact(),
                                            e);
       }
     }).collect(toList());
@@ -449,7 +454,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     for (ArtifactClassificationNode node : classificationNodes) {
       final List<String> pluginDependencies = node.getArtifactDependencies().stream()
           .map(dependency -> toClassifierLessId(dependency.getArtifact()))
-              .collect(toList());
+          .collect(toList());
       final String classifierLessId = toClassifierLessId(node.getArtifact());
       final PluginUrlClassification pluginUrlClassification =
           pluginResourcesResolver.resolvePluginResourcesFor(
@@ -491,7 +496,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
 
     List<URL> urls;
     try {
-      List<Dependency> managedDependencies = dependencyResolver.readArtifactDescriptor(artifactToClassify).getManagedDependencies();
+      List<Dependency> managedDependencies =
+          dependencyResolver.readArtifactDescriptor(artifactToClassify).getManagedDependencies();
 
       final DependencyFilter dependencyFilter = orFilter(classpathFilter(COMPILE),
                                                          new PatternExclusionsDependencyFilter(context.getExcludedArtifacts()));
@@ -499,7 +505,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
                                                           Collections.<Dependency>emptyList(), managedDependencies,
                                                           dependencyFilter));
     } catch (Exception e) {
-      throw new IllegalStateException("Couldn't resolve dependencies for artifact: '" + artifactToClassify + "' classification", e);
+      throw new IllegalStateException("Couldn't resolve dependencies for artifact: '" + artifactToClassify + "' classification",
+                                      e);
     }
 
     List<Dependency> directDependencies;
@@ -516,7 +523,8 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
         .map(artifact -> {
           String artifactClassifierLessId = toClassifierLessId(artifact);
           if (!artifactsClassified.containsKey(artifactClassifierLessId)) {
-            buildPluginUrlClassification(artifact, context, rootArtifactDirectDependencies, directDependenciesFilter, artifactsClassified);
+            buildPluginUrlClassification(artifact, context, rootArtifactDirectDependencies, directDependenciesFilter,
+                                         artifactsClassified);
           }
           return artifactsClassified.get(artifactClassifierLessId);
         })
@@ -524,9 +532,9 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
 
     final ArrayList<Class> exportClasses = newArrayList(context.getExportPluginClasses(artifactToClassify));
     ArtifactClassificationNode artifactUrlClassification = new ArtifactClassificationNode(artifactToClassify,
-                                                                                    urls,
-                                                                                    exportClasses,
-                                                                                    artifactDependencies);
+                                                                                          urls,
+                                                                                          exportClasses,
+                                                                                          artifactDependencies);
 
     artifactsClassified.put(toClassifierLessId(artifactToClassify), artifactUrlClassification);
   }
