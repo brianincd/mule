@@ -10,15 +10,24 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mule.runtime.core.config.bootstrap.ArtifactType.APP;
 
 import org.mule.common.MuleArtifact;
 import org.mule.common.MuleArtifactFactoryException;
 import org.mule.common.Testable;
 import org.mule.common.config.XmlConfigurationCallback;
+import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.runtime.config.spring.SpringXmlConfigurationMuleArtifactFactory;
+import org.mule.runtime.core.api.MuleContext;
+import org.mule.runtime.core.api.config.ConfigurationBuilder;
+import org.mule.runtime.core.api.config.ConfigurationException;
+import org.mule.runtime.core.api.registry.RegistrationException;
+import org.mule.runtime.core.config.ConfigResource;
+import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -41,7 +50,25 @@ public class MessageSourceMuleArtifactTestCase extends AbstractMuleTestCase {
 
   @Before
   public void before() {
-    factory = new SpringXmlConfigurationMuleArtifactFactory();
+    factory = new SpringXmlConfigurationMuleArtifactFactory() {
+
+      @Override
+      protected ConfigurationBuilder createConfigurationBuilder(Map<String, String> environmentProperties,
+                                                                         ConfigResource config) {
+        return new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP) {
+
+          @Override
+          public void configure(MuleContext muleContext) throws ConfigurationException {
+            super.configure(muleContext);
+            try {
+              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
+            } catch (RegistrationException e) {
+              throw new ConfigurationException(e);
+            }
+          }
+        };
+      }
+    };
   }
 
   @After
@@ -54,7 +81,7 @@ public class MessageSourceMuleArtifactTestCase extends AbstractMuleTestCase {
   @Test
   public void createsMessageSourceArtifact() throws MuleArtifactFactoryException, DocumentException {
     XmlConfigurationCallback callback = mock(XmlConfigurationCallback.class);
-    HashMap<String, String> map = new HashMap<>();
+    Map<String, String> map = new HashMap<>();
     map.put("test", "test1");
     when(callback.getEnvironmentProperties()).thenReturn(map);
     when(callback.getPropertyPlaceholders()).thenReturn(new Element[] {});
