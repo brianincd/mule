@@ -11,10 +11,6 @@ import static org.hamcrest.object.IsCompatibleType.typeCompatibleWith;
 import static org.junit.Assert.assertThat;
 import static org.mule.test.runner.utils.AnnotationUtils.getAnnotationAttributeFrom;
 
-import java.util.List;
-
-import org.junit.runner.RunWith;
-
 import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
@@ -28,8 +24,13 @@ import org.mule.test.runner.ContainerClassLoaderAware;
 import org.mule.test.runner.PluginClassLoadersAware;
 import org.mule.test.runner.RunnerDelegateTo;
 import org.mule.test.runner.ServiceClassLoadersAware;
+import org.mule.test.runner.api.ClassPathClassifier;
 import org.mule.test.runner.api.IsolatedClassLoaderExtensionsManagerConfigurationBuilder;
 import org.mule.test.runner.api.IsolatedServiceProviderDiscoverer;
+
+import java.util.List;
+
+import org.junit.runner.RunWith;
 
 /**
  * Base class for running {@link FunctionalTestCase} with class loader isolation using {@link ArtifactClassLoaderRunner}, a JUnit
@@ -69,7 +70,7 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
   private static List<ArtifactClassLoader> serviceClassLoaders;
   private static ClassLoader containerClassLoader;
 
-  private MuleServiceManager serviceRepository;
+  private static MuleServiceManager serviceRepository;
 
   /**
    * @return thread context class loader has to be the application {@link ClassLoader} created by the runner.
@@ -125,26 +126,18 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
   }
 
   protected void configureSpringXmlConfigurationBuilder(SpringXmlConfigurationBuilder builder) {
-    serviceRepository =
-        new MuleServiceManager(new DefaultServiceDiscoverer(new IsolatedServiceProviderDiscoverer(
-                                                                                                  serviceClassLoaders),
-                                                            new ReflectionServiceResolver(
-                                                                                          new ReflectionServiceProviderResolutionHelper())));
-    try {
-      serviceRepository.start();
-    } catch (MuleException e) {
-      throw new IllegalStateException("Couldn't start service manager", e);
+    if (serviceRepository == null) {
+      serviceRepository =
+          new MuleServiceManager(new DefaultServiceDiscoverer(new IsolatedServiceProviderDiscoverer(serviceClassLoaders),
+                                                              new ReflectionServiceResolver(new ReflectionServiceProviderResolutionHelper())));
+      try {
+        serviceRepository.start();
+      } catch (MuleException e) {
+        throw new IllegalStateException("Couldn't start service manager", e);
+      }
     }
-    builder
-        .addServiceConfigurator(
-                                new TestServicesMuleContextConfigurator(
-                                                                        serviceRepository));
-  }
 
-  @Override
-  protected void doTearDownAfterMuleContextDispose() throws Exception {
-    serviceRepository.stop();
-    super.doTearDownAfterMuleContextDispose();
+    builder.addServiceConfigurator(new TestServicesMuleContextConfigurator(serviceRepository));
   }
 
   /**
