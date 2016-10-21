@@ -169,20 +169,17 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    */
   private List<ArtifactUrlClassification> buildServicesUrlClassification(final ClassPathClassifierContext context,
                                                                          final List<Dependency> directDependencies) {
-    Map<String, PluginClassificationNode> servicesClassified = newLinkedHashMap();
+    Map<String, ArtifactClassificationNode> servicesClassified = newLinkedHashMap();
 
-    final Predicate<Dependency> dependencyPredicate =
+    final Predicate<Dependency> muleServiceClassifiedDependencyFilter =
         dependency -> dependency.getArtifact().getClassifier().equals(MULE_SERVICE_CLASSIFIER);
     List<Artifact> serviceArtifactsDeclared = filterArtifacts(directDependencies,
-                                                              dependencyPredicate);
+                                                              muleServiceClassifiedDependencyFilter);
     logger.debug("{} services defined to be classified", serviceArtifactsDeclared.size());
 
-    ExtensionPluginMetadataGenerator extensionPluginMetadataGenerator =
-        new ExtensionPluginMetadataGenerator(context.getPluginResourcesFolder());
-
     serviceArtifactsDeclared.stream()
-        .forEach(serviceArtifact -> buildPluginUrlClassification(serviceArtifact, context, extensionPluginMetadataGenerator,
-                                                                 directDependencies, dependencyPredicate, servicesClassified));
+        .forEach(serviceArtifact -> buildPluginUrlClassification(serviceArtifact, context, directDependencies,
+                                                                 muleServiceClassifiedDependencyFilter, servicesClassified));
 
     return toServiceUrlClassification(servicesClassified.values());
 
@@ -375,10 +372,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
   private List<PluginUrlClassification> buildPluginUrlClassifications(ClassPathClassifierContext context,
                                                                       List<Dependency> directDependencies,
                                                                       ArtifactClassificationType rootArtifactType) {
-    Map<String, PluginClassificationNode> pluginsClassified = newLinkedHashMap();
-
-    ExtensionPluginMetadataGenerator extensionPluginMetadataGenerator =
-        new ExtensionPluginMetadataGenerator(context.getPluginResourcesFolder());
+    Map<String, ArtifactClassificationNode> pluginsClassified = newLinkedHashMap();
 
     Artifact rootArtifact = context.getRootArtifact();
 
@@ -388,11 +382,10 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
 
     logger.debug("{} plugins defined to be classified", pluginsArtifacts.size());
 
-    Predicate<Dependency> filter = dependency -> dependency.getArtifact().getClassifier().equals(MULE_PLUGIN_CLASSIFIER);
+    Predicate<Dependency> mulePluginDependencyFilter = dependency -> dependency.getArtifact().getClassifier().equals(MULE_PLUGIN_CLASSIFIER);
     if (PLUGIN.equals(rootArtifactType)) {
       logger.debug("rootArtifact '{}' identified as Mule plugin", rootArtifact);
-      buildPluginUrlClassification(rootArtifact, context, extensionPluginMetadataGenerator, directDependencies, filter,
-                                   pluginsClassified);
+      buildPluginUrlClassification(rootArtifact, context, directDependencies, mulePluginDependencyFilter, pluginsClassified);
 
       pluginsArtifacts = pluginsArtifacts.stream()
           .filter(pluginArtifact -> !(rootArtifact.getGroupId().equals(pluginArtifact.getGroupId())
@@ -401,55 +394,70 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     }
 
     pluginsArtifacts.stream()
-        .forEach(pluginArtifact -> buildPluginUrlClassification(pluginArtifact, context, extensionPluginMetadataGenerator,
-                                                                directDependencies, filter, pluginsClassified));
+        .forEach(pluginArtifact -> buildPluginUrlClassification(pluginArtifact, context, directDependencies, mulePluginDependencyFilter,
+                                                                pluginsClassified));
 
-    extensionPluginMetadataGenerator.generateDslResources();
+    if (context.isExtensionMetadataGenerationEnabled()) {
+      ExtensionPluginMetadataGenerator extensionPluginMetadataGenerator =
+          new ExtensionPluginMetadataGenerator(context.getPluginResourcesFolder());
 
+      for (ArtifactClassificationNode pluginClassifiedNode : pluginsClassified.values()) {
+        generateExtensionMetadata(pluginClassifiedNode.getArtifact(), context, extensionPluginMetadataGenerator, pluginClassifiedNode.getUrls());
+      }
+
+      extensionPluginMetadataGenerator.generateDslResources();
+    }
     return toPluginUrlClassification(pluginsClassified.values());
   }
 
-  private List<ArtifactUrlClassification> toServiceUrlClassification(Collection<PluginClassificationNode> classificationNodes) {
+  /**
+   * Transforms the {@link ArtifactClassificationNode} to {@link ArtifactsUrlClassification}.
+   *
+   * @param classificationNodes the fat object classified that needs to be transformed
+   * @return {@link ArtifactsUrlClassification}
+   */
+  private List<ArtifactUrlClassification> toServiceUrlClassification(Collection<ArtifactClassificationNode> classificationNodes) {
     return classificationNodes.stream().map(node -> {
       InputStream servicePropertiesStream =
           new URLClassLoader(node.getUrls().toArray(new URL[0]), null).getResourceAsStream(SERVICE_PROPERTIES_FILE_NAME);
-      checkNotNull(servicePropertiesStream, "Couldn't find " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getName());
+      checkNotNull(servicePropertiesStream, "Couldn't find " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getArtifact());
       try {
         Properties serviceProperties = loadProperties(servicePropertiesStream);
         String serviceProviderClassName = serviceProperties.getProperty(SERVICE_PROVIDER_CLASS_NAME);
-        logger.debug("Discover serviceProviderClassName: {} for artifact: {}", serviceProviderClassName, node.getName());
+        logger.debug("Discover serviceProviderClassName: {} for artifact: {}", serviceProviderClassName, node.getArtifact());
         if (node.getExportClasses() != null && !node.getExportClasses().isEmpty()) {
           logger.warn("exportClasses is not supported for services artifacts, they are going to be ignored");
         }
-        return new ArtifactUrlClassification(node.getName(), serviceProviderClassName, node.getUrls());
+        return new ArtifactUrlClassification(toClassifierLessId(node.getArtifact()), serviceProviderClassName, node.getUrls());
       } catch (IOException e) {
-        throw new IllegalArgumentException("Couldn't read " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getName(),
+        throw new IllegalArgumentException("Couldn't read " + SERVICE_PROPERTIES_FILE_NAME + " for artifact: " + node.getArtifact(),
                                            e);
       }
     }).collect(toList());
   }
 
   /**
-   * Transforms the {@link PluginClassificationNode} to {@link PluginUrlClassification}.
+   * Transforms the {@link ArtifactClassificationNode} to {@link PluginUrlClassification}.
    *
    * @param classificationNodes the fat object classified that needs to be transformed
    * @return {@link PluginUrlClassification}
    */
-  private List<PluginUrlClassification> toPluginUrlClassification(Collection<PluginClassificationNode> classificationNodes) {
+  private List<PluginUrlClassification> toPluginUrlClassification(Collection<ArtifactClassificationNode> classificationNodes) {
 
     Map<String, PluginUrlClassification> classifiedPluginUrls = newLinkedHashMap();
 
-    for (PluginClassificationNode node : classificationNodes) {
-      final List<String> pluginDependencies = node.getPluginDependencies().stream()
-          .map(dependency -> dependency.getName())
-          .collect(toList());
+    for (ArtifactClassificationNode node : classificationNodes) {
+      final List<String> pluginDependencies = node.getArtifactDependencies().stream()
+          .map(dependency -> toClassifierLessId(dependency.getArtifact()))
+              .collect(toList());
+      final String classifierLessId = toClassifierLessId(node.getArtifact());
       final PluginUrlClassification pluginUrlClassification =
           pluginResourcesResolver.resolvePluginResourcesFor(
-                                                            new PluginUrlClassification(node.getName(), node.getUrls(),
+                                                            new PluginUrlClassification(classifierLessId, node.getUrls(),
                                                                                         node.getExportClasses(),
                                                                                         pluginDependencies));
 
-      classifiedPluginUrls.put(node.getName(), pluginUrlClassification);
+      classifiedPluginUrls.put(classifierLessId, pluginUrlClassification);
     }
 
     for (PluginUrlClassification pluginUrlClassification : classifiedPluginUrls.values()) {
@@ -467,67 +475,60 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
   }
 
   /**
-   * Classifies a plugin {@link Artifact}. {@value org.eclipse.aether.util.artifact.JavaScopes#COMPILE} dependencies will be
-   * resolved for building the {@link URL}'s for the class loader. For {@link Extension} annotated classes it will also generate
-   * its metadata. Once classified the node is added to {@link Map} of pluginsClassified.
+   * Classifies an {@link Artifact} recursively. {@value org.eclipse.aether.util.artifact.JavaScopes#COMPILE} dependencies will be
+   * resolved for building the {@link URL}'s for the class loader. Once classified the node is added to {@link Map} of artifactsClassified.
    *
-   * @param pluginArtifact {@link Artifact} that represents the plugin to be classified
+   * @param artifactToClassify {@link Artifact} that represents the artifact to be classified
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
-   * @param extensionPluginGenerator {@link ExtensionPluginMetadataGenerator} extensions metadata generator
    * @param rootArtifactDirectDependencies {@link List} of {@link Dependency} with direct dependencies for the rootArtifact
-   * @param pluginsClassified {@link Map} that contains already classified plugins
+   * @param artifactsClassified {@link Map} that contains already classified plugins
    */
-  private void buildPluginUrlClassification(Artifact pluginArtifact, ClassPathClassifierContext context,
-                                            ExtensionPluginMetadataGenerator extensionPluginGenerator,
+  private void buildPluginUrlClassification(Artifact artifactToClassify, ClassPathClassifierContext context,
                                             List<Dependency> rootArtifactDirectDependencies,
-                                            Predicate<Dependency> filter,
-                                            Map<String, PluginClassificationNode> pluginsClassified) {
-    checkPluginDeclaredAsDirectDependency(pluginArtifact, context, rootArtifactDirectDependencies);
+                                            Predicate<Dependency> directDependenciesFilter,
+                                            Map<String, ArtifactClassificationNode> artifactsClassified) {
+    checkPluginDeclaredAsDirectDependency(artifactToClassify, context, rootArtifactDirectDependencies);
 
     List<URL> urls;
     try {
-      List<Dependency> managedDependencies = dependencyResolver.readArtifactDescriptor(pluginArtifact).getManagedDependencies();
+      List<Dependency> managedDependencies = dependencyResolver.readArtifactDescriptor(artifactToClassify).getManagedDependencies();
 
       final DependencyFilter dependencyFilter = orFilter(classpathFilter(COMPILE),
                                                          new PatternExclusionsDependencyFilter(context.getExcludedArtifacts()));
-      urls = toUrl(dependencyResolver.resolveDependencies(new Dependency(pluginArtifact, COMPILE),
+      urls = toUrl(dependencyResolver.resolveDependencies(new Dependency(artifactToClassify, COMPILE),
                                                           Collections.<Dependency>emptyList(), managedDependencies,
                                                           dependencyFilter));
     } catch (Exception e) {
-      throw new IllegalStateException("Couldn't resolve dependencies for plugin: '" + pluginArtifact + "' classification", e);
+      throw new IllegalStateException("Couldn't resolve dependencies for artifact: '" + artifactToClassify + "' classification", e);
     }
 
     List<Dependency> directDependencies;
-    List<PluginClassificationNode> pluginDependencies = newArrayList();
+    List<ArtifactClassificationNode> artifactDependencies = newArrayList();
     try {
-      directDependencies = dependencyResolver.getDirectDependencies(pluginArtifact);
+      directDependencies = dependencyResolver.getDirectDependencies(artifactToClassify);
     } catch (ArtifactDescriptorException e) {
-      throw new IllegalStateException("Couldn't get direct dependencies for plugin: '" + pluginArtifact + "'", e);
+      throw new IllegalStateException("Couldn't get direct dependencies for artifact: '" + artifactToClassify + "'", e);
     }
-    logger.debug("Searching for plugin dependencies on direct dependencies of plugin {}", pluginArtifact);
-    List<Artifact> pluginArtifactDependencies = filterArtifacts(directDependencies, filter);
-    logger.debug("Artifacts {} identified a plugin dependencies for plugin {}", pluginArtifactDependencies, pluginArtifact);
+    logger.debug("Searching for dependencies on direct dependencies of artifact {}", artifactToClassify);
+    List<Artifact> pluginArtifactDependencies = filterArtifacts(directDependencies, directDependenciesFilter);
+    logger.debug("Artifacts {} identified a plugin dependencies for plugin {}", pluginArtifactDependencies, artifactToClassify);
     pluginArtifactDependencies.stream()
         .map(artifact -> {
           String artifactClassifierLessId = toClassifierLessId(artifact);
-          if (!pluginsClassified.containsKey(artifactClassifierLessId)) {
-            buildPluginUrlClassification(artifact, context, extensionPluginGenerator, rootArtifactDirectDependencies,
-                                         filter, pluginsClassified);
+          if (!artifactsClassified.containsKey(artifactClassifierLessId)) {
+            buildPluginUrlClassification(artifact, context, rootArtifactDirectDependencies, directDependenciesFilter, artifactsClassified);
           }
-          return pluginsClassified.get(artifactClassifierLessId);
+          return artifactsClassified.get(artifactClassifierLessId);
         })
-        .forEach(pluginDependencies::add);
+        .forEach(artifactDependencies::add);
 
-    // Generate Metadata
-    urls = generateExtensionMetadata(pluginArtifact, context, extensionPluginGenerator, urls);
-
-    final ArrayList<Class> exportClasses = newArrayList(context.getExportPluginClasses(pluginArtifact));
-    PluginClassificationNode pluginUrlClassification = new PluginClassificationNode(toClassifierLessId(pluginArtifact),
+    final ArrayList<Class> exportClasses = newArrayList(context.getExportPluginClasses(artifactToClassify));
+    ArtifactClassificationNode artifactUrlClassification = new ArtifactClassificationNode(artifactToClassify,
                                                                                     urls,
                                                                                     exportClasses,
-                                                                                    pluginDependencies);
+                                                                                    artifactDependencies);
 
-    pluginsClassified.put(toClassifierLessId(pluginArtifact), pluginUrlClassification);
+    artifactsClassified.put(toClassifierLessId(artifactToClassify), artifactUrlClassification);
   }
 
   /**
@@ -569,19 +570,19 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * If enabled generates the Extension metadata and returns the {@link List} of {@link URL}s with the folder were metadata is
    * generated as first entry in the list.
    *
-   * @param pluginArtifact plugin {@link Artifact} to generate its Extension metadata
+   * @param plugin plugin {@link Artifact} to generate its Extension metadata
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
    * @param extensionPluginGenerator {@link ExtensionPluginMetadataGenerator} extensions metadata generator
    * @param urls current {@link List} of {@link URL}s classified for the plugin
    * @return {@link List} of {@link URL}s classified for the plugin
    */
-  private List<URL> generateExtensionMetadata(Artifact pluginArtifact, ClassPathClassifierContext context,
+  private List<URL> generateExtensionMetadata(Artifact plugin, ClassPathClassifierContext context,
                                               ExtensionPluginMetadataGenerator extensionPluginGenerator, List<URL> urls) {
-    Class extensionClass = extensionPluginGenerator.scanForExtensionAnnotatedClasses(pluginArtifact, urls);
+    Class extensionClass = extensionPluginGenerator.scanForExtensionAnnotatedClasses(plugin, urls);
     if (extensionClass != null) {
-      logger.debug("Plugin '{}' has been discovered as Extension", pluginArtifact);
+      logger.debug("Plugin '{}' has been discovered as Extension", plugin);
       if (context.isExtensionMetadataGenerationEnabled()) {
-        File generatedMetadataFolder = extensionPluginGenerator.generateExtensionManifest(pluginArtifact, extensionClass);
+        File generatedMetadataFolder = extensionPluginGenerator.generateExtensionManifest(plugin, extensionClass);
         URL generatedTestResources = toUrl(generatedMetadataFolder);
 
         List<URL> appendedTestResources = newArrayList(generatedTestResources);
