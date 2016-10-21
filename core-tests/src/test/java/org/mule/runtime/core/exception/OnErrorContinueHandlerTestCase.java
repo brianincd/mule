@@ -22,16 +22,19 @@ import static org.mule.tck.MuleTestUtils.getTestFlow;
 
 import org.mule.runtime.core.DefaultEventContext;
 import org.mule.runtime.core.api.DefaultMuleException;
+import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.EventContext;
 import org.mule.runtime.core.api.MuleContext;
-import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.message.InternalMessage;
 import org.mule.runtime.core.api.processor.Processor;
+import org.mule.runtime.core.api.registry.MuleRegistry;
+import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.api.transaction.Transaction;
 import org.mule.runtime.core.api.transaction.TransactionException;
 import org.mule.runtime.core.api.util.StreamCloserService;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.transaction.TransactionCoordination;
+import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 import org.mule.tck.testmodels.mule.TestTransaction;
 
@@ -77,6 +80,11 @@ public class OnErrorContinueHandlerTestCase extends AbstractMuleContextTestCase 
     if (currentTransaction != null) {
       TransactionCoordination.getInstance().unbindTransaction(currentTransaction);
     }
+
+    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
+    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
+    when(muleContext.getRegistry()).thenReturn(muleRegistry);
+
     flow = getTestFlow(muleContext);
     onErrorContinueHandler = new OnErrorContinueHandler();
     onErrorContinueHandler.setMuleContext(mockMuleContext);

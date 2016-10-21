@@ -52,6 +52,7 @@ import org.mule.runtime.core.management.stats.AllStatistics;
 import org.mule.runtime.core.processor.ResponseMessageProcessorAdapter;
 import org.mule.runtime.core.registry.DefaultRegistryBroker;
 import org.mule.runtime.core.registry.MuleRegistryHelper;
+import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractReactiveProcessorTestCase;
 import org.mule.tck.probe.JUnitLambdaProbe;
 import org.mule.tck.probe.PollingProber;
@@ -91,7 +92,9 @@ public class PipelineMessageNotificationTestCase extends AbstractReactiveProcess
     muleContext = mock(MuleContext.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
     when(muleContext.getStatistics()).thenReturn(new AllStatistics());
     when(muleContext.getConfiguration()).thenReturn(new DefaultMuleConfiguration());
-    when(muleContext.getRegistry()).thenReturn(new MuleRegistryHelper(new DefaultRegistryBroker(muleContext), muleContext));
+    final DefaultRegistryBroker registry = new DefaultRegistryBroker(muleContext);
+    registry.registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
+    when(muleContext.getRegistry()).thenReturn(new MuleRegistryHelper(registry, muleContext));
     when(muleContext.getDefaultThreadingProfile()).thenReturn(new ChainedThreadingProfile());
     notificationManager = mock(ServerNotificationManager.class);
     when(muleContext.getNotificationManager()).thenReturn(notificationManager);

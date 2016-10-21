@@ -6,6 +6,7 @@
  */
 package org.mule.runtime.core.processor;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mule.runtime.core.config.i18n.CoreMessages.errorSchedulingMessageProcessorForAsyncInvocation;
 import static org.mule.runtime.core.config.i18n.I18nMessageFactory.createStaticMessage;
 import static org.mule.runtime.core.context.notification.AsyncMessageNotification.PROCESS_ASYNC_COMPLETE;
@@ -14,19 +15,18 @@ import static org.mule.runtime.core.execution.TransactionalErrorHandlingExecutio
 import static reactor.core.Exceptions.propagate;
 import static reactor.core.publisher.Flux.just;
 import static reactor.core.scheduler.Schedulers.fromExecutor;
+
 import org.mule.runtime.core.api.DefaultMuleException;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleException;
-import org.mule.runtime.core.api.config.ThreadingProfile;
-import org.mule.runtime.core.api.context.WorkManager;
-import org.mule.runtime.core.api.context.WorkManagerSource;
 import org.mule.runtime.core.api.exception.MessagingExceptionHandler;
 import org.mule.runtime.core.api.exception.MessagingExceptionHandlerAware;
 import org.mule.runtime.core.api.execution.ExecutionTemplate;
-import org.mule.runtime.core.api.lifecycle.Startable;
 import org.mule.runtime.core.api.lifecycle.Stoppable;
 import org.mule.runtime.core.api.processor.InternalMessageProcessor;
 import org.mule.runtime.core.api.processor.Processor;
+import org.mule.runtime.core.api.scheduler.Scheduler;
+import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.context.notification.AsyncMessageNotification;
 import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.interceptor.ProcessingTimeInterceptor;
@@ -36,6 +36,7 @@ import org.mule.runtime.core.work.AbstractMuleEventWork;
 import org.mule.runtime.core.work.MuleWorkManager;
 
 import org.reactivestreams.Publisher;
+
 import reactor.core.publisher.Flux;
 
 /**
@@ -44,40 +45,23 @@ import reactor.core.publisher.Flux;
  * configured on the inbound endpoint. If a transaction is present then an exception is thrown.
  */
 public class AsyncInterceptingMessageProcessor extends AbstractInterceptingMessageProcessor
-    implements Startable, Stoppable, MessagingExceptionHandlerAware, InternalMessageProcessor {
+    implements Stoppable, MessagingExceptionHandlerAware, InternalMessageProcessor {
 
   public static final String SYNCHRONOUS_EVENT_ERROR_MESSAGE = "Unable to process a synchronous event asynchronously";
 
-  protected WorkManagerSource workManagerSource;
+  protected Scheduler workScheduler;
   protected boolean doThreading = true;
   protected long threadTimeout;
-  protected WorkManager workManager;
 
   private MessagingExceptionHandler messagingExceptionHandler;
 
-  public AsyncInterceptingMessageProcessor(WorkManagerSource workManagerSource) {
-    this.workManagerSource = workManagerSource;
-  }
-
-  public AsyncInterceptingMessageProcessor(ThreadingProfile threadingProfile, String name, int shutdownTimeout) {
-    this.doThreading = threadingProfile.isDoThreading();
-    this.threadTimeout = threadingProfile.getThreadWaitTimeout();
-    workManager = threadingProfile.createWorkManager(name, shutdownTimeout);
-    workManagerSource = () -> workManager;
-  }
-
-  @Override
-  public void start() throws MuleException {
-    if (workManager != null && !workManager.isStarted()) {
-      workManager.start();
-    }
+  public AsyncInterceptingMessageProcessor(SchedulerService schedulerService) {
+    this.workScheduler = schedulerService.ioScheduler();
   }
 
   @Override
   public void stop() throws MuleException {
-    if (workManager != null) {
-      workManager.dispose();
-    }
+    workScheduler.stop(getMuleContext().getConfiguration().getShutdownTimeout(), MILLISECONDS);
   }
 
   @Override
@@ -118,8 +102,7 @@ public class AsyncInterceptingMessageProcessor extends AbstractInterceptingMessa
 
   protected void processNextAsync(Event event) throws MuleException {
     try {
-      workManagerSource.getWorkManager().scheduleWork(new AsyncMessageProcessorWorker(event), WorkManager.INDEFINITE, null,
-                                                      new AsyncWorkListener(next));
+      workScheduler.submit(new AsyncMessageProcessorWorker(event));
       fireAsyncScheduledNotification(event);
     } catch (Exception e) {
       new MessagingException(errorSchedulingMessageProcessorForAsyncInvocation(next), event, e, this);
@@ -189,7 +172,7 @@ public class AsyncInterceptingMessageProcessor extends AbstractInterceptingMessa
             if (isProcessAsync(request)) {
               just(request).doOnNext(event1 -> fireAsyncScheduledNotification(event1))
                   .map(event -> Event.builder(event).session(new DefaultMuleSession(event.getSession())).build())
-                  .transform(stream -> applyNext(stream)).subscribeOn(fromExecutor(workManagerSource.getWorkManager()))
+                  .transform(stream -> applyNext(stream)).subscribeOn(fromExecutor(workScheduler))
                   .doOnNext(event -> firePipelineNotification(event, null))
                   .doOnError(MessagingException.class, me -> firePipelineNotification(me.getEvent(), me))
                   .onErrorResumeWith(MessagingException.class, flowConstruct.getExceptionListener()).subscribe();

@@ -21,13 +21,16 @@ import static org.mule.tck.MuleTestUtils.getTestFlow;
 
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.MediaType;
+import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.EventContext;
 import org.mule.runtime.core.api.MuleContext;
-import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.message.InternalMessage;
+import org.mule.runtime.core.api.registry.MuleRegistry;
+import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.construct.flow.DefaultFlowProcessingStrategy;
 import org.mule.runtime.core.processor.strategy.NonBlockingProcessingStrategy;
+import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 import org.mule.tck.junit4.matcher.DataTypeMatcher;
 import org.mule.tck.size.SmallTest;
@@ -52,6 +55,10 @@ public class DefaultMuleEventTestCase extends AbstractMuleContextTestCase {
 
   @Before
   public void before() throws Exception {
+    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
+    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
+    when(muleContext.getRegistry()).thenReturn(muleRegistry);
+
     flow = getTestFlow(muleContext);
     messageContext = DefaultEventContext.create(flow, TEST_CONNECTOR);
     muleEvent = Event.builder(messageContext).message(muleMessage).exchangePattern(REQUEST_RESPONSE).flow(flow).build();

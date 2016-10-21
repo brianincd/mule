@@ -20,15 +20,16 @@ import static org.mule.runtime.core.api.config.MuleProperties.MULE_SESSION_PROPE
 import static org.mule.tck.MuleTestUtils.getTestFlow;
 
 import org.mule.runtime.core.DefaultEventContext;
-import org.mule.runtime.core.api.EventContext;
 import org.mule.runtime.core.api.Event;
-import org.mule.runtime.core.api.message.InternalMessage;
+import org.mule.runtime.core.api.EventContext;
 import org.mule.runtime.core.api.MuleSession;
+import org.mule.runtime.core.api.message.InternalMessage;
 import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.api.serialization.ObjectSerializer;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.processor.AsyncInterceptingMessageProcessor;
 import org.mule.tck.SensingNullMessageProcessor;
+import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
 import java.util.Collections;
@@ -53,11 +54,10 @@ public class SessionPropertiesTestCase extends AbstractMuleContextTestCase {
    */
   @Test
   public void asyncInterceptingProcessorSessionPropertyPropagation() throws Exception {
-    AsyncInterceptingMessageProcessor async =
-        new AsyncInterceptingMessageProcessor(muleContext.getDefaultThreadingProfile(), "async", 0);
+    AsyncInterceptingMessageProcessor async = new AsyncInterceptingMessageProcessor(new SingleThreadSchedulerService());
     SensingNullMessageProcessor asyncListener = new SensingNullMessageProcessor();
+    async.setMuleContext(muleContext);
     async.setListener(asyncListener);
-    async.start();
 
     InternalMessage message = InternalMessage.builder().payload("data").build();
     Event event = Event.builder(context).message(message).exchangePattern(ONE_WAY).flow(flow).build();
