@@ -16,15 +16,12 @@ import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.construct.FlowConstructInvalidException;
 import org.mule.runtime.core.api.processor.factory.AsynchronousProcessingStrategyFactory;
 import org.mule.runtime.core.api.processor.factory.NonBlockingProcessingStrategyFactory;
-import org.mule.runtime.core.api.registry.MuleRegistry;
-import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.api.source.MessageSource;
 import org.mule.runtime.core.api.source.NonBlockingMessageSource;
 import org.mule.runtime.core.exception.OnErrorPropagateHandler;
 import org.mule.runtime.core.processor.AbstractRedeliveryPolicy;
 import org.mule.runtime.core.processor.IdempotentRedeliveryPolicy;
 import org.mule.runtime.core.processor.strategy.SynchronousProcessingStrategy;
-import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import java.util.Arrays;
@@ -50,10 +47,7 @@ public class FlowValidationTestCase extends AbstractMuleTestCase {
 
   @Before
   public void setUp() throws MuleException {
-    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
-    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
-    when(mockMuleContext.getRegistry()).thenReturn(muleRegistry);
-
+    registerServices(mockMuleContext);
     when(mockMuleContext.getConfiguration().getDefaultProcessingStrategyFactory()).thenReturn(null);
     this.flow = new Flow(FLOW_NAME, mockMuleContext);
   }

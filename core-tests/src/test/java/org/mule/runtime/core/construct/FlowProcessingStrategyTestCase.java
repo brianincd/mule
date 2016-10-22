@@ -18,11 +18,8 @@ import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.MuleConfiguration;
 import org.mule.runtime.core.api.processor.ProcessingStrategy;
 import org.mule.runtime.core.api.processor.factory.ProcessingStrategyFactory;
-import org.mule.runtime.core.api.registry.MuleRegistry;
 import org.mule.runtime.core.api.registry.RegistrationException;
-import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.construct.flow.DefaultFlowProcessingStrategy;
-import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
 
@@ -46,10 +43,7 @@ public class FlowProcessingStrategyTestCase extends AbstractMuleTestCase {
 
   @Before
   public void before() throws RegistrationException {
-    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
-    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
-    when(muleContext.getRegistry()).thenReturn(muleRegistry);
-
+    registerServices(muleContext);
     when(muleContext.getConfiguration()).thenReturn(configuration);
     createFlow();
   }

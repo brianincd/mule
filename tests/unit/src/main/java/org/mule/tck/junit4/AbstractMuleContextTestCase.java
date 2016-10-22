@@ -27,7 +27,6 @@ import org.mule.runtime.core.api.context.MuleContextFactory;
 import org.mule.runtime.core.api.context.notification.MuleContextNotificationListener;
 import org.mule.runtime.core.api.message.InternalMessage;
 import org.mule.runtime.core.api.processor.Processor;
-import org.mule.runtime.core.api.registry.MuleRegistry;
 import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.component.DefaultJavaComponent;
 import org.mule.runtime.core.config.DefaultMuleConfiguration;
@@ -43,9 +42,9 @@ import org.mule.runtime.core.util.FileUtils;
 import org.mule.runtime.core.util.StringUtils;
 import org.mule.runtime.core.util.concurrent.Latch;
 import org.mule.tck.SensingNullMessageProcessor;
-import org.mule.tck.SingleThreadSchedulerService;
 import org.mule.tck.TestingWorkListener;
 import org.mule.tck.TriggerableMessageSource;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -207,7 +206,6 @@ public abstract class AbstractMuleContextTestCase extends AbstractMuleTestCase {
         contextBuilder.setExecutionClassLoader(executionClassLoader);
         configureMuleContext(contextBuilder);
         context = muleContextFactory.createMuleContext(builders, contextBuilder);
-        registerTestObjects(context.getRegistry());
         if (!isGracefulShutdown()) {
           ((DefaultMuleConfiguration) context.getConfiguration()).setShutdownTimeout(0);
         }
@@ -218,16 +216,6 @@ public abstract class AbstractMuleContextTestCase extends AbstractMuleTestCase {
     return context;
   }
 
-  /**
-   * Registers objects into the given {@code muleRegistry} that are needed by the tests.
-   * 
-   * @param muleRegistry
-   * @throws RegistrationException
-   */
-  protected void registerTestObjects(MuleRegistry muleRegistry) throws RegistrationException {
-    muleRegistry.registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-  }
-
   protected ClassLoader getExecutionClassLoader() {
     return this.getClass().getClassLoader();
   }
@@ -235,7 +223,7 @@ public abstract class AbstractMuleContextTestCase extends AbstractMuleTestCase {
   // This sohuldn't be needed by Test cases but can be used by base testcases that wish to add further builders when
   // creating the MuleContext.
   protected void addBuilders(List<ConfigurationBuilder> builders) {
-    // No op
+    builders.add(new RegisterServicesConfigurationBuilder());
   }
 
   /**

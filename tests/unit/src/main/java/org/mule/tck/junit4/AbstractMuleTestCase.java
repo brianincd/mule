@@ -21,6 +21,7 @@ import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.message.InternalMessage;
 import org.mule.runtime.core.api.registry.MuleRegistry;
+import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.api.scheduler.SchedulerService;
 import org.mule.runtime.core.util.MuleUrlStreamHandlerFactory;
 import org.mule.runtime.core.util.StringMessageUtils;
@@ -225,11 +226,8 @@ public abstract class AbstractMuleTestCase {
    * @return a basic event builder with its context already set.
    */
   protected static Builder eventBuilder() throws MuleException {
-    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
-    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
-
     final MuleContext muleContext = mock(MuleContext.class, RETURNS_DEEP_STUBS);
-    when(muleContext.getRegistry()).thenReturn(muleRegistry);
+    registerServices(muleContext);
 
     FlowConstruct flowConstruct = getTestFlow(muleContext);
     return Event.builder(DefaultEventContext.create(flowConstruct, TEST_CONNECTOR));
@@ -264,6 +262,12 @@ public abstract class AbstractMuleTestCase {
     if (testCaseName == null) {
       testCaseName = this.getClass().getName();
     }
+  }
+
+  public static void registerServices(MuleContext muleContext) throws RegistrationException {
+    final MuleRegistry muleRegistry = mock(MuleRegistry.class);
+    when(muleRegistry.lookupObject(SchedulerService.class)).thenReturn(new SingleThreadSchedulerService());
+    when(muleContext.getRegistry()).thenReturn(muleRegistry);
   }
 
   private Event _testEvent;

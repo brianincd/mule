@@ -215,7 +215,8 @@ public class SpringXmlConfigurationMuleArtifactFactory implements XmlConfigurati
       }
       MuleContextFactory factory = new DefaultMuleContextFactory();
 
-      builder = createConfigurationBuilder(environmentProperties, config);
+      builder =
+          wrapConfigurationBuilder(new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP));
       muleContext = factory.createMuleContext(builder);
       muleContext.start();
 
@@ -251,9 +252,8 @@ public class SpringXmlConfigurationMuleArtifactFactory implements XmlConfigurati
     }
   }
 
-  protected ConfigurationBuilder createConfigurationBuilder(Map<String, String> environmentProperties,
-                                                            ConfigResource config) {
-    return new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP);
+  protected ConfigurationBuilder wrapConfigurationBuilder(ConfigurationBuilder configBuilder) {
+    return configBuilder;
   }
 
   protected void addSchemaLocation(org.w3c.dom.Element element, XmlConfigurationCallback callback,

@@ -6,16 +6,15 @@
  */
 package org.mule.test.core;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.runtime.core.api.MuleContext;
-import org.mule.runtime.core.api.config.ConfigurationException;
 import org.mule.runtime.core.api.context.MuleContextFactory;
-import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.context.DefaultMuleContextFactory;
-import org.mule.tck.SingleThreadSchedulerService;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import org.junit.Test;
@@ -24,20 +23,9 @@ public class EmbeddedMuleTestCase extends AbstractMuleTestCase {
 
   @Test
   public void testStartup() throws Exception {
-    SpringXmlConfigurationBuilder builder = new SpringXmlConfigurationBuilder("org/mule/test/spring/mule-root-test.xml") {
-
-      @Override
-      public void configure(MuleContext muleContext) throws ConfigurationException {
-        super.configure(muleContext);
-        try {
-          muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-        } catch (RegistrationException e) {
-          throw new ConfigurationException(e);
-        }
-      }
-    };
+    SpringXmlConfigurationBuilder builder = new SpringXmlConfigurationBuilder("org/mule/test/spring/mule-root-test.xml");
     MuleContextFactory muleContextFactory = new DefaultMuleContextFactory();
-    MuleContext context = muleContextFactory.createMuleContext(builder);
+    MuleContext context = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), builder));
     // MuleContext must be started explicitly after MULE-1988
     assertFalse(context.isStarted());
     context.start();

@@ -11,13 +11,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.mule.runtime.core.MuleServer;
-import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
-import org.mule.runtime.core.config.builders.AbstractConfigurationBuilder;
 import org.mule.runtime.core.util.ClassUtils;
 import org.mule.runtime.core.util.FilenameUtils;
 import org.mule.runtime.core.util.JdkVersionUtils;
-import org.mule.tck.SingleThreadSchedulerService;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import java.io.IOException;
@@ -67,13 +65,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
       @Override
       protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-        builders.add(new AbstractConfigurationBuilder() {
-
-          @Override
-          public void doConfigure(MuleContext muleContext) throws Exception {
-            muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-          }
-        });
+        builders.add(new RegisterServicesConfigurationBuilder());
       }
     };
     assertEquals("org/mule/test/spring/config1/test-xml-mule2-config.xml", muleServer.getConfigurationResources());
@@ -92,13 +84,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
       @Override
       protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-        builders.add(new AbstractConfigurationBuilder() {
-
-          @Override
-          public void doConfigure(MuleContext muleContext) throws Exception {
-            muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-          }
-        });
+        builders.add(new RegisterServicesConfigurationBuilder());
       }
     };
     assertEquals("org/mule/test/spring/config1/test-xml-mule2-config.xml", muleServer.getConfigurationResources());
@@ -118,13 +104,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
           @Override
           protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-            builders.add(new AbstractConfigurationBuilder() {
-
-              @Override
-              public void doConfigure(MuleContext muleContext) throws Exception {
-                muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-              }
-            });
+            builders.add(new RegisterServicesConfigurationBuilder());
           }
         };
     assertEquals("mule-config.xml,org/mule/test/spring/config1/test-xml-mule2-config.xml",
@@ -144,13 +124,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
       @Override
       protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-        builders.add(new AbstractConfigurationBuilder() {
-
-          @Override
-          public void doConfigure(MuleContext muleContext) throws Exception {
-            muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-          }
-        });
+        builders.add(new RegisterServicesConfigurationBuilder());
       }
     };
     assertEquals(ClassUtils.getResource("mule-config.xml", MuleServer.class).toString(), muleServer.getConfigurationResources());
@@ -169,13 +143,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
       @Override
       protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-        builders.add(new AbstractConfigurationBuilder() {
-
-          @Override
-          public void doConfigure(MuleContext muleContext) throws Exception {
-            muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-          }
-        });
+        builders.add(new RegisterServicesConfigurationBuilder());
       }
     };
     assertEquals(ClassUtils.getResource("mule-config.xml", MuleServer.class).toString(), muleServer.getConfigurationResources());
@@ -196,13 +164,7 @@ public class MuleServerTestCase extends AbstractMuleTestCase {
 
       @Override
       protected void addStartupPropertiesConfigBuilder(List<ConfigurationBuilder> builders) throws IOException {
-        builders.add(new AbstractConfigurationBuilder() {
-
-          @Override
-          public void doConfigure(MuleContext muleContext) throws Exception {
-            muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-          }
-        });
+        builders.add(new RegisterServicesConfigurationBuilder());
       }
     };
     muleServer.initialize();

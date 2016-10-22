@@ -22,7 +22,6 @@ import org.mule.runtime.core.api.config.ConfigurationBuilder;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.processor.MessageProcessorChain;
 import org.mule.runtime.core.api.processor.Processor;
-import org.mule.runtime.core.api.registry.MuleRegistry;
 import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.api.schedule.Scheduler;
 import org.mule.runtime.core.api.schedule.Schedulers;
@@ -37,6 +36,7 @@ import org.mule.tck.junit4.AbstractMuleContextTestCase;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.After;
 
@@ -87,7 +87,7 @@ public abstract class FunctionalTestCase extends AbstractMuleContextTestCase {
   }
 
   @Override
-  protected void registerTestObjects(MuleRegistry muleRegistry) throws RegistrationException {
+  protected void addBuilders(List<ConfigurationBuilder> builders) {
     // Nothing to do
   }
 

@@ -10,20 +10,16 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mule.runtime.core.config.bootstrap.ArtifactType.APP;
 
 import org.mule.common.MuleArtifact;
 import org.mule.common.MuleArtifactFactoryException;
 import org.mule.common.Testable;
 import org.mule.common.config.XmlConfigurationCallback;
-import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.runtime.config.spring.SpringXmlConfigurationMuleArtifactFactory;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
-import org.mule.runtime.core.api.config.ConfigurationException;
-import org.mule.runtime.core.api.registry.RegistrationException;
-import org.mule.runtime.core.config.ConfigResource;
-import org.mule.tck.SingleThreadSchedulerService;
+import org.mule.runtime.core.config.builders.AbstractConfigurationBuilder;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import java.util.HashMap;
@@ -53,18 +49,13 @@ public class MessageSourceMuleArtifactTestCase extends AbstractMuleTestCase {
     factory = new SpringXmlConfigurationMuleArtifactFactory() {
 
       @Override
-      protected ConfigurationBuilder createConfigurationBuilder(Map<String, String> environmentProperties,
-                                                                ConfigResource config) {
-        return new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP) {
+      protected ConfigurationBuilder wrapConfigurationBuilder(ConfigurationBuilder configBuilder) {
+        return new AbstractConfigurationBuilder() {
 
           @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
+          protected void doConfigure(MuleContext muleContext) throws Exception {
+            configBuilder.configure(muleContext);
+            new RegisterServicesConfigurationBuilder().configure(muleContext);
           }
         };
       }

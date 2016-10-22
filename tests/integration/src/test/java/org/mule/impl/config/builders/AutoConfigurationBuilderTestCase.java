@@ -17,13 +17,12 @@ import org.mule.runtime.core.api.config.ConfigurationException;
 import org.mule.runtime.core.api.context.MuleContextFactory;
 import org.mule.runtime.core.api.exception.MessagingExceptionHandler;
 import org.mule.runtime.core.api.lifecycle.InitialisationException;
-import org.mule.runtime.core.config.builders.AbstractConfigurationBuilder;
 import org.mule.runtime.core.config.builders.AutoConfigurationBuilder;
 import org.mule.runtime.core.config.builders.SimpleConfigurationBuilder;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.context.DefaultMuleContextBuilder;
 import org.mule.runtime.core.context.DefaultMuleContextFactory;
-import org.mule.tck.SingleThreadSchedulerService;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import org.junit.Test;
@@ -33,13 +32,8 @@ public class AutoConfigurationBuilderTestCase extends AbstractMuleTestCase {
   @Test
   public void testConfigureSpring() throws ConfigurationException, InitialisationException {
     MuleContextFactory muleContextFactory = new DefaultMuleContextFactory();
-    MuleContext muleContext = muleContextFactory.createMuleContext(asList(new AbstractConfigurationBuilder() {
-
-      @Override
-      public void doConfigure(MuleContext muleContext) throws Exception {
-        muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-      }
-    }, new SimpleConfigurationBuilder(null),
+    MuleContext muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(),
+                                                                          new SimpleConfigurationBuilder(null),
                                                                           new AutoConfigurationBuilder("org/mule/test/spring/config1/test-xml-mule2-config.xml",
                                                                                                        emptyMap(), APP)),
                                                                    new DefaultMuleContextBuilder());

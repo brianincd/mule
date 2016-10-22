@@ -6,6 +6,7 @@
  */
 package org.mule.test.config.spring.parsers.specific;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -17,10 +18,8 @@ import org.mule.runtime.config.spring.util.SpringBeanLookup;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.component.JavaComponent;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
-import org.mule.runtime.core.api.config.ConfigurationException;
 import org.mule.runtime.core.api.context.MuleContextFactory;
 import org.mule.runtime.core.api.lifecycle.InitialisationException;
-import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.component.AbstractJavaComponent;
 import org.mule.runtime.core.component.DefaultJavaComponent;
 import org.mule.runtime.core.component.PooledJavaComponent;
@@ -35,7 +34,7 @@ import org.mule.runtime.core.model.resolvers.NoArgumentsEntryPointResolver;
 import org.mule.runtime.core.model.resolvers.ReflectionEntryPointResolver;
 import org.mule.runtime.core.object.PrototypeObjectFactory;
 import org.mule.runtime.core.object.SingletonObjectFactory;
-import org.mule.tck.SingleThreadSchedulerService;
+import org.mule.tck.config.RegisterServicesConfigurationBuilder;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.testmodels.mule.TestComponentLifecycleAdapterFactory;
 
@@ -58,19 +57,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testDefaultJavaComponentShortcut() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service1");
     validateCorrectServiceCreation(flow);
     assertEquals(DefaultJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -89,19 +77,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testDefaultJavaComponentPrototype() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service2");
     validateCorrectServiceCreation(flow);
     assertEquals(DefaultJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -118,19 +95,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testDefaultJavaComponentSingleton() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service3");
     validateCorrectServiceCreation(flow);
     assertEquals(DefaultJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -148,19 +114,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testDefaultJavaComponentSpringBean() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service4");
     validateCorrectServiceCreation(flow);
     assertEquals(DefaultJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -190,19 +145,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testPooledJavaComponentShortcut() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service5");
     validateCorrectServiceCreation(flow);
     assertEquals(PooledJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -221,19 +165,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testPooledJavaComponentPrototype() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service6");
     validateCorrectServiceCreation(flow);
     assertEquals(PooledJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -252,19 +185,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testPooledJavaComponentSingleton() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service7");
     validateCorrectServiceCreation(flow);
     assertEquals(PooledJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -283,19 +205,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   @Test
   public void testPooledJavaComponentSpringBean() throws Exception {
     ConfigurationBuilder configBuilder =
-        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml") {
-
-          @Override
-          public void configure(MuleContext muleContext) throws ConfigurationException {
-            super.configure(muleContext);
-            try {
-              muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-            } catch (RegistrationException e) {
-              throw new ConfigurationException(e);
-            }
-          }
-        };
-    muleContext = muleContextFactory.createMuleContext(configBuilder);
+        new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-ok-test-flow.xml");
+    muleContext = muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder));
     Flow flow = muleContext.getRegistry().lookupObject("service8");
     validateCorrectServiceCreation(flow);
     assertEquals(PooledJavaComponent.class, flow.getMessageProcessors().get(0).getClass());
@@ -309,19 +220,8 @@ public class ComponentDefinitionParserFlowTestCase extends AbstractMuleTestCase 
   public void testClassAttributeAndObjectFactory() throws Exception {
     try {
       ConfigurationBuilder configBuilder =
-          new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-bad-test-flow.xml") {
-
-            @Override
-            public void configure(MuleContext muleContext) throws ConfigurationException {
-              super.configure(muleContext);
-              try {
-                muleContext.getRegistry().registerObject("SingleThreadSchedulerService", new SingleThreadSchedulerService());
-              } catch (RegistrationException e) {
-                throw new ConfigurationException(e);
-              }
-            }
-          };
-      muleContextFactory.createMuleContext(configBuilder).initialise();
+          new SpringXmlConfigurationBuilder("org/mule/config/spring/parsers/specific/component-bad-test-flow.xml");
+      muleContextFactory.createMuleContext(asList(new RegisterServicesConfigurationBuilder(), configBuilder)).initialise();
       throw new IllegalStateException("Expected config to fail");
     } catch (Exception e) {
       // TODO MULE-10061 - Review once the MuleContext lifecycle is clearly defined
