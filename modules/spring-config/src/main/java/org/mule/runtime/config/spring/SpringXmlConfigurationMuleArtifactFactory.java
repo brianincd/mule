@@ -252,7 +252,7 @@ public class SpringXmlConfigurationMuleArtifactFactory implements XmlConfigurati
   }
 
   protected ConfigurationBuilder createConfigurationBuilder(Map<String, String> environmentProperties,
-                                                                     ConfigResource config) {
+                                                            ConfigResource config) {
     return new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP);
   }
 

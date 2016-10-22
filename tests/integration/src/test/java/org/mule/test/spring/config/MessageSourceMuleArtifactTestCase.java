@@ -54,7 +54,7 @@ public class MessageSourceMuleArtifactTestCase extends AbstractMuleTestCase {
 
       @Override
       protected ConfigurationBuilder createConfigurationBuilder(Map<String, String> environmentProperties,
-                                                                         ConfigResource config) {
+                                                                ConfigResource config) {
         return new SpringXmlConfigurationBuilder(new ConfigResource[] {config}, environmentProperties, APP) {
 
           @Override
