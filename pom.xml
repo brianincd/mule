@@ -265,7 +265,7 @@
         <mavenCompilerVersion>3.5.1</mavenCompilerVersion>
         <eclipsePluginVersion>2.10</eclipsePluginVersion>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>2.19.1</maven.surefire.plugin.version>
         <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
         <mule.module.maven.plugin.version>1.0-SNAPSHOT</mule.module.maven.plugin.version>
         <!-- v1.1.0 has an issue with Optional dependencies, when resolving the graph it overrides the optionality of a transitive
@@ -2238,46 +2238,48 @@
             </properties>
 
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <testFailureIgnore>true</testFailureIgnore>
-                            <argLine>
-                                -javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/${allure.aspectj.version}/aspectjweaver-${allure.aspectj.version}.jar
-                            </argLine>
-                            <properties>
-                                <property>
-                                    <name>listener</name>
-                                    <value>ru.yandex.qatools.allure.junit.AllureRunListener</value>
-                                </property>
-                            </properties>
-                            <systemPropertyVariables>
-                                <allure.profile.is.activated>true</allure.profile.is.activated>
-                            </systemPropertyVariables>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.aspectj</groupId>
-                                <artifactId>aspectjweaver</artifactId>
-                                <version>${allure.aspectj.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-surefire-plugin</artifactId>
+                            <configuration>
+                                <testFailureIgnore>true</testFailureIgnore>
+                                <argLine>
+                                    -javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/${allure.aspectj.version}/aspectjweaver-${allure.aspectj.version}.jar
+                                </argLine>
+                                <properties>
+                                    <property>
+                                        <name>listener</name>
+                                        <value>ru.yandex.qatools.allure.junit.AllureRunListener</value>
+                                    </property>
+                                </properties>
+                                <systemPropertyVariables>
+                                    <allure.profile.is.activated>true</allure.profile.is.activated>
+                                </systemPropertyVariables>
+                            </configuration>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.aspectj</groupId>
+                                    <artifactId>aspectjweaver</artifactId>
+                                    <version>${allure.aspectj.version}</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
 
-                    <!--Needed only to show reports locally. Run jetty:run and open localhost:8080 to show the report-->
-                    <plugin>
-                        <groupId>org.eclipse.jetty</groupId>
-                        <artifactId>jetty-maven-plugin</artifactId>
-                        <version>9.2.10.v20150310</version>
-                        <configuration>
-                            <webAppSourceDirectory>${project.build.directory}/site/allure-maven-plugin</webAppSourceDirectory>
-                            <stopKey>stop</stopKey>
-                            <stopPort>1234</stopPort>
-                        </configuration>
-                    </plugin>
-                </plugins>
+                        <!--Needed only to show reports locally. Run jetty:run and open localhost:8080 to show the report-->
+                        <plugin>
+                            <groupId>org.eclipse.jetty</groupId>
+                            <artifactId>jetty-maven-plugin</artifactId>
+                            <version>9.2.10.v20150310</version>
+                            <configuration>
+                                <webAppSourceDirectory>${project.build.directory}/site/allure-maven-plugin</webAppSourceDirectory>
+                                <stopKey>stop</stopKey>
+                                <stopPort>1234</stopPort>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
             </build>
 
             <reporting>
