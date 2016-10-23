@@ -285,16 +285,6 @@
             <version>${multithreadedtcVersion}</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>ru.yandex.qatools.allure</groupId>-->
-            <!--<artifactId>allure-junit-adaptor</artifactId>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>ru.yandex.qatools.allure</groupId>-->
-            <!--<artifactId>allure-java-annotations</artifactId>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
     </dependencies>
 
     <!-- Declare all dependencies that are used in more than one module here. -->
@@ -1601,6 +1591,7 @@
                                     <ignoredUsedUndeclaredDependency>junit:junit</ignoredUsedUndeclaredDependency>
                                     <ignoredUsedUndeclaredDependency>commons-logging:commons-logging</ignoredUsedUndeclaredDependency>
                                     <ignoredUsedUndeclaredDependency>org.apache.ftpserver:ftpserver-core</ignoredUsedUndeclaredDependency>
+                                    <ignoredUsedUndeclaredDependency>ru.yandex.qatools.allure</ignoredUsedUndeclaredDependency>
 
                                     <!-- Logging related artifacts are exposed by the BOOTSTRAP ClassLoader -->
                                     <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
