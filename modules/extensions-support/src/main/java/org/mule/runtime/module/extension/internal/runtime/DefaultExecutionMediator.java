@@ -12,6 +12,7 @@ import static org.mule.runtime.core.execution.TransactionalExecutionTemplate.cre
 import org.mule.runtime.api.connection.ConnectionProvider;
 import org.mule.runtime.api.meta.model.ExtensionModel;
 import org.mule.runtime.api.meta.model.operation.OperationModel;
+import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.execution.ExecutionTemplate;
@@ -145,7 +146,15 @@ public final class DefaultExecutionMediator implements ExecutionMediator {
           //TODO see how to get the namespace.
           if (policyInstance.getOperationPolicy().appliesToOperation(componentIdentifier))
           {
-            event = policyInstance.processOperationPre(context.getEvent());
+            Event.Builder eventBuilder = Event.builder(context.getEvent().getContext())
+                    .message(context.getEvent().getMessage());
+            Event previesPolicyEvent = policyInstance.getAttachedEvent();
+            for (String variableNAme : previesPolicyEvent.getVariableNames())
+            {
+              TypedValue<Object> variable = previesPolicyEvent.getVariable(variableNAme);
+              eventBuilder.addVariable(variableNAme, variable.getValue(), variable.getDataType());
+            }
+            event = policyInstance.processOperationPre(eventBuilder.build());
           }
         }
         context.setEvent(event);

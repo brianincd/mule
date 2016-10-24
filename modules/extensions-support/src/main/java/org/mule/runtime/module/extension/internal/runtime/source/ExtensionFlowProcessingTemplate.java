@@ -47,14 +47,6 @@ final class ExtensionFlowProcessingTemplate implements AsyncResponseFlowProcessi
   public void sendResponseToClient(org.mule.runtime.core.api.Event muleEvent,
                                    ResponseCompletionCallback responseCompletionCallback)
       throws MuleException {
-    for (OperationPolicyInstance policyInstance : muleEvent.getPolicyInstances())
-    {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier.Builder().withNamespace("httpn").withNamespace(sourceModel.getName()).build();
-      if (policyInstance.getOperationPolicy().appliesToSource(componentIdentifier))
-      {
-        muleEvent = policyInstance.processSourcePost(muleEvent);
-      }
-    }
     final org.mule.runtime.core.api.Event resultEvent = muleEvent;
     ExtensionSourceExceptionCallback exceptionCallback =
         new ExtensionSourceExceptionCallback(responseCompletionCallback, muleEvent);
@@ -65,6 +57,7 @@ final class ExtensionFlowProcessingTemplate implements AsyncResponseFlowProcessi
   public void sendFailureResponseToClient(MessagingException messagingException,
                                           ResponseCompletionCallback responseCompletionCallback)
       throws MuleException {
+    messagingException.getEvent();
     runAndNotify(() -> completionHandler.onFailure(messagingException), event, responseCompletionCallback);
   }
 

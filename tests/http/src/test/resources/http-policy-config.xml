@@ -12,6 +12,10 @@
         <httpn:listener-connection host="localhost" port="${proxyPort}"/>
     </httpn:listener-config>
 
+    <httpn:listener-config name="apiConfig">
+        <httpn:listener-connection host="localhost" port="${httpPort}"/>
+    </httpn:listener-config>
+
     <httpn:request-config name="requestConfig">
         <httpn:request-connection host="localhost" port="${httpPort}"/>
     </httpn:request-config>
@@ -23,27 +27,45 @@
                                     headersRef="#[message.getAttributes().getHeaders()]" />
         </httpn:listener>
 
-        <logger message="Logger in the flow with payload #[payload]"/>
-
+        <!--<logger message="Logger in the flow with payload #[payload] and variable pepe #[sourcePreVariable]" level="ERROR"/>-->
+        <set-variable variableName="flowVar" value="flowVarValue"/>
         <httpn:request config-ref="requestConfig" method="#[message.getAttributes().getMethod()]" path="#[message.getAttributes().getRequestPath()]" parseResponse="false">
             <httpn:request-builder queryParams="#[message.getAttributes().getQueryParams()]" headers="#[message.getAttributes().getHeaders()]"/>
         </httpn:request>
     </flow>
 
+    <flow name="apiFlow">
+        <httpn:listener config-ref="apiConfig" path="/*" responseStreamingMode="AUTO" parseRequest="false">
+            <httpn:response-builder statusCode="200" />
+        </httpn:listener>
+        <set-payload value="api response"/>
+    </flow>
+
+
     <http-policy:policy>
         <http-policy:source>
             <http-policy:source-pre>
+                <set-variable variableName="sourcePreVariable" value="source pre variable" />
+                <logger message="source-pre" level="ERROR" />
                 <set-payload value="myValue"/>
             </http-policy:source-pre>
             <http-policy:source-post>
+                <!-- http attributes , body -->
+                <logger message="source-post" level="ERROR" />
                 <set-payload value="myValue"/>
+                <!--<http-policy:response-modifier>-->
+                    <!--<http-policy:add-header/>-->
+                <!--</http-policy:response-modifier>-->
             </http-policy:source-post>
         </http-policy:source>
         <http-policy:request>
-            <http-policy:requet-pre>
+            <http-policy:request-pre>
+                <logger message="source pre variable #[sourcePreVariable]" level="ERROR" />
+                <!--<logger message="flow var value #[flowVar]" level="ERROR"/>-->
                 <set-payload value="myValue"/>
-            </http-policy:requet-pre>
+            </http-policy:request-pre>
             <http-policy:request-post>
+                <logger message="request-ppst" level="ERROR" />
                 <set-payload value="myValue"/>
             </http-policy:request-post>
         </http-policy:request>

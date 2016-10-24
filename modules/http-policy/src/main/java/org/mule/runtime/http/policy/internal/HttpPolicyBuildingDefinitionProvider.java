@@ -42,7 +42,7 @@ public class HttpPolicyBuildingDefinitionProvider implements ComponentBuildingDe
                         .withSetterParameterDefinition("post", fromChildConfiguration(HttpSourcePost.class).build()).build());
 
     definitions.add(baseDefintion.copy().withIdentifier("request")
-                        .withTypeDefinition(fromType(HttpSource.class))
+                        .withTypeDefinition(fromType(HttpRequest.class))
                         .withSetterParameterDefinition("pre", fromChildConfiguration(HttpRequestPre.class).build())
                         .withSetterParameterDefinition("post", fromChildConfiguration(HttpRequestPost.class).build()).build());
 
@@ -51,7 +51,7 @@ public class HttpPolicyBuildingDefinitionProvider implements ComponentBuildingDe
                         .withSetterParameterDefinition("processors", fromChildCollectionConfiguration(Processor.class).build()).build());
       
     definitions.add(baseDefintion.copy().withIdentifier("source-post")
-                              .withTypeDefinition(fromType(HttpSourcePre.class))
+                              .withTypeDefinition(fromType(HttpSourcePost.class))
                               .withSetterParameterDefinition("processors", fromChildCollectionConfiguration(Processor.class).build()).build());
 
       definitions.add(baseDefintion.copy().withIdentifier("request-pre")

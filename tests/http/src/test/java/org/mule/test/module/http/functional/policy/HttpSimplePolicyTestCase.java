@@ -6,8 +6,14 @@
  */
 package org.mule.test.module.http.functional.policy;
 
+import org.mule.runtime.api.message.Error;
+import org.mule.runtime.core.api.MuleException;
+import org.mule.runtime.core.api.message.InternalMessage;
+import org.mule.runtime.core.functional.Either;
 import org.mule.tck.junit4.rule.DynamicPort;
 import org.mule.test.module.http.functional.AbstractHttpTestCase;
+
+import java.util.Optional;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,8 +34,8 @@ public class HttpSimplePolicyTestCase extends AbstractHttpTestCase
     }
 
     @Test
-    public void test()
+    public void test() throws MuleException
     {
-
+        Either<Error, Optional<InternalMessage>> result = muleContext.getClient().request(String.format("http://localhost:%s", proxyPort.getNumber()), 10000);
     }
 }

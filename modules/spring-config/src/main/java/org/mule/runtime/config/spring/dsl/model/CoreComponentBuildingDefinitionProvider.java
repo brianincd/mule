@@ -264,6 +264,8 @@ public class CoreComponentBuildingDefinitionProvider implements ComponentBuildin
     ComponentBuildingDefinition.Builder exceptionStrategyBaseBuilder =
         baseDefinition.copy().withSetterParameterDefinition(MESSAGE_PROCESSORS, messageProcessorListAttributeDefinition)
             .withSetterParameterDefinition("globalName", fromSimpleParameter(NAME).build());
+
+
     componentBuildingDefinitions
         .add(baseDefinition.copy().withIdentifier(EXCEPTION_STRATEGY).withTypeDefinition(fromType(Object.class))
             .withConstructorParameterDefinition(fromSimpleReferenceParameter("ref").build()).build());
@@ -405,6 +407,8 @@ public class CoreComponentBuildingDefinitionProvider implements ComponentBuildin
             .withConstructorParameterDefinition(fromChildConfiguration(Filter.class).build())
             .withConstructorParameterDefinition(fromSimpleParameter("throwOnUnaccepted").withDefaultValue(false).build())
             .withConstructorParameterDefinition(fromSimpleReferenceParameter("onUnaccepted").build()).asPrototype().build());
+
+
     componentBuildingDefinitions.add(baseDefinition.copy().withIdentifier(FLOW).withTypeDefinition(fromType(Flow.class))
         .withConstructorParameterDefinition(fromSimpleParameter(NAME).build())
         .withConstructorParameterDefinition(fromReferenceObject(MuleContext.class).build())
@@ -414,6 +418,9 @@ public class CoreComponentBuildingDefinitionProvider implements ComponentBuildin
         .withSetterParameterDefinition(EXCEPTION_LISTENER_ATTRIBUTE,
                                        fromChildConfiguration(MessagingExceptionHandler.class).build())
         .withSetterParameterDefinition("processingStrategy", fromSimpleReferenceParameter("processingStrategy").build()).build());
+
+
+
     componentBuildingDefinitions.add(baseDefinition.copy().withIdentifier(SCATTER_GATHER)
         .withTypeDefinition(fromType(ScatterGatherRouter.class)).withObjectFactoryType(ScatterGatherRouterFactoryBean.class)
         .withSetterParameterDefinition("timeout", fromSimpleParameter("timeout").build())

@@ -111,6 +111,7 @@ public class DefaultEventBuilder implements Event.Builder {
     this.error = event.getError().orElse(null);
 
     this.notificationsEnabled = event.isNotificationsEnabled();
+    this.policyInstances = event.getPolicyInstances();
 
     event.getVariableNames().forEach(key -> this.flowVariables
         .put(key, (DefaultTypedValue<Object>) event.getVariable(key)));

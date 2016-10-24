@@ -110,7 +110,10 @@ public class AsyncResponseFlowProcessingPhase
     for (OperationPolicy operationPolicy : operationPolicies) {
       if (operationPolicy.appliesToSource(sourceIdentifier)) {
         OperationPolicyInstance policyInstance = operationPolicy.createSourcePolicyInstance(sourceIdentifier);
-        muleEvent = policyInstance.processSourcePre(muleEvent);
+        Event policyEvent = Event.builder(muleEvent.getContext())
+                .message(muleEvent.getMessage()).build();
+        Event policyResultEvent = policyInstance.processSourcePre(policyEvent);
+        policyInstance.attachEvent(policyResultEvent);
         muleEvent = Event.builder(muleEvent).attachPolicyInstance(policyInstance).build();
       }
     }

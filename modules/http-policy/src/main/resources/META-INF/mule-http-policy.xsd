@@ -31,52 +31,21 @@
                         <xsd:complexType>
                             <xsd:sequence>
                                 <xsd:element name="source-pre" minOccurs="0" maxOccurs="1">
-                                    <xsd:sequence>
-                                        <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                                            <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
-                                        </xsd:choice>
-                                    </xsd:sequence>
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                                                <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
+                                            </xsd:choice>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
                                 </xsd:element>
                                 <xsd:element name="source-post" minOccurs="0" maxOccurs="1">
-                                    <xsd:sequence>
-                                        <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                                            <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
-                                        </xsd:choice>
-                                        <xsd:element name="response-modifier">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:element name="add-header">
-                                                        <xsd:complexType>
-                                                            <xsd:attribute name="header"/>
-                                                            <xsd:attribute name="value"/>
-                                                        </xsd:complexType>
-                                                    </xsd:element>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
-                                    </xsd:sequence>
-                                </xsd:element>
-                            </xsd:sequence>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="request" minOccurs="0" maxOccurs="1">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="request-pre" minOccurs="0" maxOccurs="1">
-                                    <xsd:sequence>
-                                        <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                                            <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
-                                            <xsd:element name="response">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>
-                                                        An outbound endpoint
-                                                    </xsd:documentation>
-                                                </xsd:annotation>
-                                                <xsd:complexType>
-                                                    <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor" maxOccurs="unbounded"/>
-                                                </xsd:complexType>
-                                            </xsd:element>
-                                            <xsd:element name="request-modifier">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                                                <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
+                                            </xsd:choice>
+                                            <xsd:element name="response-modifier" minOccurs="0" maxOccurs="1">
                                                 <xsd:complexType>
                                                     <xsd:sequence>
                                                         <xsd:element name="add-header">
@@ -88,25 +57,64 @@
                                                     </xsd:sequence>
                                                 </xsd:complexType>
                                             </xsd:element>
-                                        </xsd:choice>
-                                    </xsd:sequence>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="request" minOccurs="0" maxOccurs="1">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="request-pre" minOccurs="0" maxOccurs="1">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                                                <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
+                                                <xsd:element name="response">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>
+                                                            An outbound endpoint
+                                                        </xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor" maxOccurs="unbounded"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="request-modifier">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="add-header">
+                                                                <xsd:complexType>
+                                                                    <xsd:attribute name="header"/>
+                                                                    <xsd:attribute name="value"/>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:choice>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
                                 </xsd:element>
                                 <xsd:element name="request-post" minOccurs="0" maxOccurs="1">
-                                    <xsd:sequence>
-                                        <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                                            <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
-                                            <xsd:element name="response">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>
-                                                        An outbound endpoint
-                                                    </xsd:documentation>
-                                                </xsd:annotation>
-                                                <xsd:complexType>
-                                                    <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor" maxOccurs="unbounded"/>
-                                                </xsd:complexType>
-                                            </xsd:element>
-                                        </xsd:choice>
-                                    </xsd:sequence>
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                                                <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor"/>
+                                                <xsd:element name="response">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation>
+                                                            An outbound endpoint
+                                                        </xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:group ref="mule:messageProcessorOrMixedContentMessageProcessor" maxOccurs="unbounded"/>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:choice>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
                                 </xsd:element>
                             </xsd:sequence>
                         </xsd:complexType>
