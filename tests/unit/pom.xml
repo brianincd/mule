@@ -41,10 +41,6 @@
             <artifactId>hamcrest-library</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>ru.yandex.qatools.allure</groupId>
-            <artifactId>allure-junit-adaptor</artifactId>
-        </dependency>
     </dependencies>
 </project>
 
