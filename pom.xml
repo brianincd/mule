@@ -141,6 +141,7 @@
         <activemqVersion>5.11.1</activemqVersion>
         <antVersion>1.7.0</antVersion>
         <antlrVersion>3.5</antlrVersion>
+        <assertJVersion>3.5.2</assertJVersion>
         <asmVersion>3.3.1</asmVersion>
         <aspectjVersion>1.8.5</aspectjVersion>
         <asyncHttpClientVersion>1.9.39</asyncHttpClientVersion>
@@ -235,7 +236,7 @@
         <xstreamVersion>1.4.9</xstreamVersion>
         <xaPoolVersion>1.5.0</xaPoolVersion>
         <muleCommonVersion>3.8.0</muleCommonVersion>
-        <allure.junit.version>1.4.23.HOTFIX1</allure.junit.version>
+        <allureJunitVersion>1.4.23.HOTFIX1</allureJunitVersion>
 
         <!--Maven plugins versions-->
         <dependency.plugin.version>2.10</dependency.plugin.version>
@@ -686,12 +687,17 @@
             <dependency>
                 <groupId>ru.yandex.qatools.allure</groupId>
                 <artifactId>allure-junit-adaptor</artifactId>
-                <version>${allure.junit.version}</version>
+                <version>${allureJunitVersion}</version>
             </dependency>
             <dependency>
                 <groupId>ru.yandex.qatools.allure</groupId>
                 <artifactId>allure-java-annotations</artifactId>
-                <version>${allure.junit.version}</version>
+                <version>${allureJunitVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertJVersion}</version>
             </dependency>
 
             <!--Logging-->

@@ -9,6 +9,8 @@ package org.mule.runtime.module.deployment.internal.domain;
 import static org.mule.runtime.core.config.bootstrap.ArtifactType.DOMAIN;
 import static org.mule.runtime.core.util.ClassUtils.withContextClassLoader;
 import static org.mule.runtime.core.util.SplashScreen.miniSplash;
+
+import org.mule.runtime.api.metadata.MetadataService;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.MuleRuntimeException;
@@ -93,6 +95,11 @@ public class DefaultMuleDomain implements Domain {
   @Override
   public ConnectivityTestingService getConnectivityTestingService() {
     return artifactContext.getConnectivityTestingService();
+  }
+
+  @Override
+  public MetadataService getMetadataService() {
+    return artifactContext.getMetadataService();
   }
 
   @Override

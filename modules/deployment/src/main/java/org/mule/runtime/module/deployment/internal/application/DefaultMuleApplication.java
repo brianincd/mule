@@ -11,6 +11,8 @@ import static org.mule.runtime.core.config.bootstrap.ArtifactType.APP;
 import static org.mule.runtime.core.config.i18n.I18nMessageFactory.createStaticMessage;
 import static org.mule.runtime.core.util.ClassUtils.withContextClassLoader;
 import static org.mule.runtime.core.util.SplashScreen.miniSplash;
+
+import org.mule.runtime.api.metadata.MetadataService;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
@@ -256,6 +258,11 @@ public class DefaultMuleApplication implements Application {
   @Override
   public ConnectivityTestingService getConnectivityTestingService() {
     return artifactContext.getConnectivityTestingService();
+  }
+
+  @Override
+  public MetadataService getMetadataService() {
+    return artifactContext.getMetadataService();
   }
 
   @Override

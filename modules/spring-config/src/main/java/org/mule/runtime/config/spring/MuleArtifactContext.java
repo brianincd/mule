@@ -15,6 +15,7 @@ import static org.mule.runtime.config.spring.dsl.model.ApplicationModel.MULE_IDE
 import static org.mule.runtime.config.spring.dsl.spring.BeanDefinitionFactory.SPRING_SINGLETON_OBJECT;
 import static org.mule.runtime.config.spring.parsers.generic.AutoIdUtils.uniqueValue;
 import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_CONNECTIVITY_TESTING_SERVICE;
+import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_METADATA_SERVICE;
 import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_MULE_CONFIGURATION;
 import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_MULE_CONTEXT;
 import static org.mule.runtime.core.exception.ErrorTypeLocatorFactory.createDefaultErrorTypeLocator;
@@ -25,6 +26,7 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.AUTOW
 import static org.springframework.context.annotation.AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME;
 import static org.springframework.context.annotation.AnnotationConfigUtils.REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME;
 
+import org.mule.runtime.api.metadata.MetadataService;
 import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinitionProvider;
 import org.mule.runtime.config.spring.dsl.api.config.ArtifactConfiguration;
 import org.mule.runtime.config.spring.dsl.api.xml.StaticXmlNamespaceInfo;
@@ -482,6 +484,10 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext {
 
   public ConnectivityTestingService getConnectivityTestingService() {
     return muleContext.getRegistry().lookupObject(OBJECT_CONNECTIVITY_TESTING_SERVICE);
+  }
+
+  public MetadataService getMetadataService() {
+    return muleContext.getRegistry().get(OBJECT_METADATA_SERVICE);
   }
 
   private class XmlServiceRegistry implements ServiceRegistry {

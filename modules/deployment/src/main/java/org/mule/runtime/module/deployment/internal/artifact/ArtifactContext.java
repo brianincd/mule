@@ -6,9 +6,11 @@
  */
 package org.mule.runtime.module.deployment.internal.artifact;
 
+import org.mule.runtime.api.metadata.MetadataService;
 import org.mule.runtime.config.spring.MuleArtifactContext;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.connectivity.ConnectivityTestingService;
+import org.mule.runtime.module.artifact.Artifact;
 
 /**
  * An artifact context contains all the information related to an {@link org.mule.runtime.module.artifact.Artifact} that contains
@@ -47,4 +49,11 @@ public class ArtifactContext {
     return muleArtifactContext.getConnectivityTestingService();
   }
 
+  /**
+   * @return the {@link MetadataService} for the current {@link Artifact}.
+   * @see MetadataService
+   */
+  public MetadataService getMetadataService() {
+    return muleArtifactContext.getMetadataService();
+  }
 }
